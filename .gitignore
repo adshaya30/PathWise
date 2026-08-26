@@ -1,0 +1,18 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies & Build artifacts
+node_modules/
+target/
+dist/
+build/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
