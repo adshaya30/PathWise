@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function AISection() {
   return (
     <section className="w-full max-w-6xl mx-auto px-6 mb-24">

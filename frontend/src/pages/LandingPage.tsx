@@ -1,4 +1,3 @@
-import React from 'react';
 import { Header } from '../components/Header';
 import { JourneySection } from '../components/JourneySection';
 import { AISection } from '../components/AISection';

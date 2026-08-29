@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 export function Header() {
@@ -25,6 +24,9 @@ export function Header() {
           </Link>
           <Link to="/sources" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
             Sources
+          </Link>
+          <Link to="/admin/documents" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors font-semibold">
+            Admin Portal
           </Link>
         </nav>
 
