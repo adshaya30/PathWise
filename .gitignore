@@ -9,6 +9,8 @@ node_modules/
 target/
 dist/
 build/
+uploads/
+pathwise-backend/uploads/
 
 # IDE / OS
 .idea/

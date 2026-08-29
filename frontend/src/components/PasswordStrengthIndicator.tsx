@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface PasswordStrengthIndicatorProps {
   password?: string;
   className?: string;
