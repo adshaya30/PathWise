@@ -130,27 +130,10 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
       resetForm();
       onClose();
     } catch (err: any) {
-      console.warn('Backend upload notice, using local preview mode:', err);
-      // If backend is offline or network error, fallback to local preview gracefully
-      const fallbackDoc: DocumentItem = {
-        id: `doc-${Date.now()}`,
-        title: title.trim(),
-        fileSize: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '4.2 MB',
-        fileName: selectedFile ? selectedFile.name : `${title.toLowerCase().replace(/\s+/g, '_')}.pdf`,
-        source: finalSource,
-        academicYear,
-        type,
-        status: 'PENDING_REVIEW',
-        uploadedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        description,
-      };
-
-      onUploadSuccess(fallbackDoc);
+      console.error('Document upload error:', err);
+      setError(err.message || 'Failed to upload and process document. Please ensure you are logged in as Admin and backend is running.');
       setIsUploading(false);
       setUploadProgress(0);
-      resetForm();
-      onClose();
     }
   };
 
