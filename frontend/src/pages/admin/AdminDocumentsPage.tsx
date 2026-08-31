@@ -14,6 +14,8 @@ import {
   Plus,
   XCircle,
   Loader2,
+  X,
+  ArrowRight,
 } from 'lucide-react';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import type { DocumentItem, DocumentStatus } from '../../types/document';
@@ -44,6 +46,7 @@ export const AdminDocumentsPage: FC = () => {
 
   // Phase 1 / Coming Soon Banner or Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [uploadSuccessToast, setUploadSuccessToast] = useState<DocumentItem | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -93,7 +96,8 @@ export const AdminDocumentsPage: FC = () => {
   // Handlers
   const handleUploadSuccess = (newDoc: DocumentItem) => {
     setDocuments((prev) => [newDoc, ...prev]);
-    showToast(`Document "${newDoc.title}" uploaded & processed!`);
+    setUploadSuccessToast(newDoc);
+    setTimeout(() => setUploadSuccessToast((curr) => (curr?.id === newDoc.id ? null : curr)), 10000);
   };
 
   const handleEditSave = (updatedDoc: DocumentItem) => {
@@ -166,7 +170,39 @@ export const AdminDocumentsPage: FC = () => {
       title="Documents"
       subtitle="Upload, review, and verify knowledge-base source documents."
     >
-      {/* Toast notification */}
+      {/* Interactive 1-Click Upload Success Review Toast */}
+      {uploadSuccessToast && (
+        <div className="fixed top-6 right-6 z-50 bg-slate-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3.5 animate-in fade-in slide-in-from-top-4 duration-300 max-w-md">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-bold text-white truncate">
+              {uploadSuccessToast.fileName || uploadSuccessToast.title} ({uploadSuccessToast.pages || 0} Pages)
+            </h4>
+            <p className="text-xs text-slate-300">Extracted and stored successfully.</p>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedDocForReview(uploadSuccessToast);
+              setUploadSuccessToast(null);
+            }}
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-900/40 shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>Review Now</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setUploadSuccessToast(null)}
+            className="text-slate-400 hover:text-white transition-colors p-1 cursor-pointer shrink-0"
+            title="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* General Toast notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700 animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />

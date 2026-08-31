@@ -1,4 +1,5 @@
 import type { DocumentItem, DocumentPageItem, DocumentUploadPayload } from '../types/document';
+import { authApiService } from './authApiService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/admin/documents';
 
@@ -8,6 +9,41 @@ export interface DocumentFilterParams {
   status?: string;
   documentType?: string;
   query?: string;
+}
+
+/**
+ * Helper to execute fetch with JWT token and auto-refresh on 401
+ */
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = authApiService.getStoredToken();
+  const headers = new Headers(options.headers || {});
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const fetchOptions: RequestInit = {
+    ...options,
+    headers,
+    credentials: 'include',
+  };
+
+  let response = await fetch(url, fetchOptions);
+
+  // If 401 Unauthorized, attempt a silent token refresh and retry once
+  if (response.status === 401) {
+    try {
+      const refreshed = await authApiService.refreshToken();
+      if (refreshed?.accessToken) {
+        headers.set('Authorization', `Bearer ${refreshed.accessToken}`);
+        response = await fetch(url, { ...fetchOptions, headers });
+      }
+    } catch {
+      // Refresh failed
+    }
+  }
+
+  return response;
 }
 
 export const documentApiService = {
@@ -29,7 +65,7 @@ export const documentApiService = {
       if (params.query) url.searchParams.append('query', params.query);
     }
 
-    const response = await fetch(url.toString());
+    const response = await authFetch(url.toString());
     if (!response.ok) {
       throw new Error(`Failed to fetch documents: ${response.statusText}`);
     }
@@ -56,7 +92,7 @@ export const documentApiService = {
       formData.append('description', payload.description);
     }
 
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+    const response = await authFetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       body: formData,
     });
@@ -79,7 +115,7 @@ export const documentApiService = {
    * Get extracted pages for a document
    */
   async getDocumentPages(documentId: string | number): Promise<DocumentPageItem[]> {
-    const response = await fetch(`${API_BASE_URL}/${documentId}/pages`);
+    const response = await authFetch(`${API_BASE_URL}/${documentId}/pages`);
     if (!response.ok) {
       throw new Error(`Failed to fetch document pages: ${response.statusText}`);
     }
@@ -95,7 +131,7 @@ export const documentApiService = {
     notes?: string,
     reviewedBy: string = 'PathWise Admin'
   ): Promise<DocumentItem> {
-    const response = await fetch(`${API_BASE_URL}/${documentId}/status`, {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +162,7 @@ export const documentApiService = {
     documentId: string | number,
     data: { title: string; source: string; academicYear: string; documentType?: string; description?: string }
   ): Promise<DocumentItem> {
-    const response = await fetch(`${API_BASE_URL}/${documentId}`, {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +190,7 @@ export const documentApiService = {
     pageNumber: number,
     extractedText: string
   ): Promise<DocumentPageItem> {
-    const response = await fetch(`${API_BASE_URL}/${documentId}/pages/${pageNumber}`, {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}/pages/${pageNumber}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -172,7 +208,7 @@ export const documentApiService = {
    * Delete document
    */
   async deleteDocument(documentId: string | number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/${documentId}`, {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
