@@ -1,8 +1,8 @@
-package com.pathwise.services.impl;
+package com.pathwise.admin.service.impl;
 
-import com.pathwise.entity.Document;
-import com.pathwise.entity.DocumentPage;
-import com.pathwise.services.PdfExtractionService;
+import com.pathwise.admin.entity.Document;
+import com.pathwise.admin.entity.DocumentPage;
+import com.pathwise.admin.service.PdfExtractionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;

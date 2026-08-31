@@ -1,7 +1,7 @@
-package com.pathwise.services;
+package com.pathwise.admin.service;
 
-import com.pathwise.entity.Document;
-import com.pathwise.entity.DocumentPage;
+import com.pathwise.admin.entity.Document;
+import com.pathwise.admin.entity.DocumentPage;
 
 import java.io.IOException;
 import java.io.InputStream;

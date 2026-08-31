@@ -1,7 +1,7 @@
-package com.pathwise.dto;
+package com.pathwise.admin.dto;
 
-import com.pathwise.entity.Document;
-import com.pathwise.entity.enums.DocumentStatus;
+import com.pathwise.admin.entity.Document;
+import com.pathwise.admin.entity.enums.DocumentStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;

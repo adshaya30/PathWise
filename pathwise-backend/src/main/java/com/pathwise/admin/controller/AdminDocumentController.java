@@ -1,11 +1,11 @@
-package com.pathwise.controller;
+package com.pathwise.admin.controller;
 
-import com.pathwise.dto.DocumentPageResponseDto;
-import com.pathwise.dto.DocumentResponseDto;
-import com.pathwise.dto.DocumentStatusUpdateRequestDto;
-import com.pathwise.dto.DocumentUploadRequestDto;
-import com.pathwise.entity.enums.DocumentStatus;
-import com.pathwise.services.DocumentManagementService;
+import com.pathwise.admin.dto.DocumentPageResponseDto;
+import com.pathwise.admin.dto.DocumentResponseDto;
+import com.pathwise.admin.dto.DocumentStatusUpdateRequestDto;
+import com.pathwise.admin.dto.DocumentUploadRequestDto;
+import com.pathwise.admin.entity.enums.DocumentStatus;
+import com.pathwise.admin.service.DocumentManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

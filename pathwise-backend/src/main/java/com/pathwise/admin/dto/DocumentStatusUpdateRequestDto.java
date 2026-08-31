@@ -1,6 +1,6 @@
-package com.pathwise.dto;
+package com.pathwise.admin.dto;
 
-import com.pathwise.entity.enums.DocumentStatus;
+import com.pathwise.admin.entity.enums.DocumentStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 

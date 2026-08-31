@@ -1,4 +1,4 @@
-package com.pathwise.dto;
+package com.pathwise.admin.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;

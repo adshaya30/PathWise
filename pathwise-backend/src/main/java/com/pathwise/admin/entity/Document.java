@@ -1,6 +1,6 @@
-package com.pathwise.entity;
+package com.pathwise.admin.entity;
 
-import com.pathwise.entity.enums.DocumentStatus;
+import com.pathwise.admin.entity.enums.DocumentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,10 +1,10 @@
-package com.pathwise.services;
+package com.pathwise.admin.service;
 
-import com.pathwise.dto.DocumentPageResponseDto;
-import com.pathwise.dto.DocumentResponseDto;
-import com.pathwise.dto.DocumentStatusUpdateRequestDto;
-import com.pathwise.dto.DocumentUploadRequestDto;
-import com.pathwise.entity.enums.DocumentStatus;
+import com.pathwise.admin.dto.DocumentPageResponseDto;
+import com.pathwise.admin.dto.DocumentResponseDto;
+import com.pathwise.admin.dto.DocumentStatusUpdateRequestDto;
+import com.pathwise.admin.dto.DocumentUploadRequestDto;
+import com.pathwise.admin.entity.enums.DocumentStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

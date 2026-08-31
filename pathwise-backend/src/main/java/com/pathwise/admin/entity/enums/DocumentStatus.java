@@ -1,4 +1,4 @@
-package com.pathwise.entity.enums;
+package com.pathwise.admin.entity.enums;
 
 public enum DocumentStatus {
     PENDING_REVIEW,

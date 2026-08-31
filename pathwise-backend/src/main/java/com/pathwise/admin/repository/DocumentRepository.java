@@ -1,7 +1,7 @@
-package com.pathwise.repository;
+package com.pathwise.admin.repository;
 
-import com.pathwise.entity.Document;
-import com.pathwise.entity.enums.DocumentStatus;
+import com.pathwise.admin.entity.Document;
+import com.pathwise.admin.entity.enums.DocumentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

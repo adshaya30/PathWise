@@ -1,6 +1,6 @@
-package com.pathwise.services.impl;
+package com.pathwise.admin.service.impl;
 
-import com.pathwise.services.FileStorageService;
+import com.pathwise.admin.service.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;

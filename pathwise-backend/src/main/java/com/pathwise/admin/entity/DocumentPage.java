@@ -1,4 +1,4 @@
-package com.pathwise.entity;
+package com.pathwise.admin.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

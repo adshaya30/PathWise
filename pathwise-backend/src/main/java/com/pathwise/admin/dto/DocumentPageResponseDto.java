@@ -1,6 +1,6 @@
-package com.pathwise.dto;
+package com.pathwise.admin.dto;
 
-import com.pathwise.entity.DocumentPage;
+import com.pathwise.admin.entity.DocumentPage;
 import lombok.*;
 
 import java.time.LocalDateTime;

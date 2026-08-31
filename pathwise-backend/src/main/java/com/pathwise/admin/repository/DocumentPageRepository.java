@@ -1,6 +1,6 @@
-package com.pathwise.repository;
+package com.pathwise.admin.repository;
 
-import com.pathwise.entity.DocumentPage;
+import com.pathwise.admin.entity.DocumentPage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
