@@ -36,6 +36,11 @@ export function PasswordStrengthIndicator({
 
   const { score, label } = getStrength(password);
 
+  // If a strong password has been entered, remove the indicator
+  if (score >= 4) {
+    return null;
+  }
+
   return (
     <div className={`mt-1 flex flex-col gap-2 ${className}`}>
       {/* 4-Segment Strength Bar */}

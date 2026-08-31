@@ -25,12 +25,9 @@ export function Header() {
           <Link to="/sources" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
             Sources
           </Link>
-          <Link to="/admin/documents" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors font-semibold">
-            Admin Portal
-          </Link>
         </nav>
 
-        {/* Right: Actions */}
+        {/* Right: Actions (Always Log in and Get started) */}
         <div className="flex items-center gap-3">
           <Link 
             to="/login"

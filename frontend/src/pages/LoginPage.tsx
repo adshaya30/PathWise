@@ -1,27 +1,79 @@
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { InputField } from '../components/InputField';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+
+interface FieldErrors {
+  email?: string;
+  password?: string;
+}
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isLoading } = useAuth();
+  const toast = useToast();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fromPath = (location.state as any)?.from?.pathname;
+
+  const validate = (): boolean => {
+    const errors: FieldErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email.trim()) {
+      errors.email = 'Email address is required';
+    } else if (!emailRegex.test(email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Incorrect email or password. Please try again.');
-      return;
+    if (!validate()) return;
+
+    try {
+      setFieldErrors({});
+      const authData = await login(email, password, rememberMe);
+
+      toast.success('Logged in successfully!');
+
+      // Check role & redirect to Admin dashboard, intended fromPath, or User home
+      if (authData.user.role === 'ADMIN' || authData.user.email.toLowerCase() === '2003adshaya@gmail.com') {
+        navigate('/admin/documents');
+      } else if (fromPath) {
+        navigate(fromPath);
+      } else {
+        navigate('/');
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Incorrect email or password. Please try again.';
+      if (msg.toLowerCase().includes('locked')) {
+        toast.error(msg, 6000);
+        setFieldErrors({ password: msg });
+      } else if (msg.toLowerCase().includes('attempts remaining') || msg.toLowerCase().includes('attempt remaining')) {
+        setFieldErrors({ password: msg });
+      } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
+        setFieldErrors({ password: 'Incorrect email or password. Please try again.' });
+      } else if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('sign up first')) {
+        setFieldErrors({ email: 'No account found with this email. Please sign up.' });
+      } else {
+        toast.error(msg);
+      }
     }
-    // Demo validation
-    if (password.length < 6) {
-      setError('Incorrect email or password. Please try again.');
-      return;
-    }
-    setError(null);
-    alert('Logged in successfully!');
   };
 
   return (
@@ -50,7 +102,7 @@ export function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
           {/* Email Address */}
           <InputField
             label="Email address"
@@ -59,25 +111,27 @@ export function LoginPage() {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              if (error) setError(null);
+              if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined });
             }}
             placeholder="student@example.com"
             icon={<Mail size={18} />}
+            error={fieldErrors.email}
           />
 
           {/* Password */}
           <InputField
             label="Password"
             required
+            type="password"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              if (error) setError(null);
+              if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined });
             }}
             placeholder="••••••••••••"
             icon={<Lock size={18} />}
             showPasswordToggle
-            error={error}
+            error={fieldErrors.password}
           />
 
           {/* Remember me & Forgot password */}
@@ -99,9 +153,17 @@ export function LoginPage() {
           {/* Log In Button */}
           <button
             type="submit"
-            className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] mt-2 text-[15px]"
+            disabled={isLoading}
+            className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#1d4ed8] disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] mt-2 text-[15px] flex items-center justify-center gap-2"
           >
-            Log in
+            {isLoading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Logging in...</span>
+              </>
+            ) : (
+              'Log in'
+            )}
           </button>
         </form>
 
@@ -117,7 +179,7 @@ export function LoginPage() {
         {/* Google Login Button */}
         <button
           type="button"
-          onClick={() => alert('Google authentication coming soon!')}
+          onClick={() => toast.info('Google authentication coming soon!')}
           className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-text-main font-semibold text-sm flex items-center justify-center gap-3 transition-colors shadow-xs"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
