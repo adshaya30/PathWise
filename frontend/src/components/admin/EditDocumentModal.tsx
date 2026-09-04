@@ -1,6 +1,7 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Loader2, AlertCircle } from 'lucide-react';
 import type { DocumentItem, DocumentSource, DocumentType } from '../../types/document';
+import { documentApiService } from '../../services/documentApiService';
 
 interface EditDocumentModalProps {
   document: DocumentItem | null;
@@ -20,6 +21,8 @@ export const EditDocumentModal: FC<EditDocumentModalProps> = ({
   const [academicYear, setAcademicYear] = useState('2026/27');
   const [type, setType] = useState<DocumentType>('Admissions');
   const [description, setDescription] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (document) {
@@ -28,27 +31,39 @@ export const EditDocumentModal: FC<EditDocumentModalProps> = ({
       setAcademicYear(document.academicYear);
       setType(document.type as DocumentType);
       setDescription(document.description || '');
+      setError(null);
     }
   }, [document]);
 
   if (!isOpen || !document) return null;
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      setError('Document title is required.');
+      return;
+    }
 
-    const updated: DocumentItem = {
-      ...document,
-      title: title.trim(),
-      source,
-      academicYear,
-      type,
-      description,
-      lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    };
+    setIsSaving(true);
+    setError(null);
 
-    onSave(updated);
-    onClose();
+    try {
+      const updatedDoc = await documentApiService.updateMetadata(document.id, {
+        title: title.trim(),
+        source,
+        academicYear,
+        documentType: type,
+        description: description.trim() || undefined,
+      });
+
+      onSave(updatedDoc);
+      onClose();
+    } catch (err: any) {
+      console.error('Failed to update document:', err);
+      setError(err.message || 'Failed to update document. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -68,6 +83,13 @@ export const EditDocumentModal: FC<EditDocumentModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
               Document Title *
@@ -151,16 +173,18 @@ export const EditDocumentModal: FC<EditDocumentModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              disabled={isSaving}
+              className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-600/20 transition-colors"
+              disabled={isSaving}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-600/20 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Save className="w-4 h-4" />
-              Save Changes
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

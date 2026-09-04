@@ -1,5 +1,5 @@
 export interface UserDto {
-  id: number;
+  id: string;
   email: string;
   role: 'USER' | 'ADMIN';
   emailVerified: boolean;

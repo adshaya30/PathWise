@@ -4,6 +4,7 @@ import com.pathwise.authentication.entity.Role;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -12,10 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 public class UserResponseDto {
 
-    private Long id;
+    private UUID id;
     private String email;
     private Role role;
     private boolean emailVerified;
     private boolean accountLocked;
     private LocalDateTime createdAt;
 }
+

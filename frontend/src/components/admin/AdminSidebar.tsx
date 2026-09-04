@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { type FC } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: FC<AdminSidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
+
   const mainNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Documents', path: '/admin/documents', icon: FileText },

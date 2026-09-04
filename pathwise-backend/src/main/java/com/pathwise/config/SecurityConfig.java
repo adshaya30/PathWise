@@ -54,9 +54,10 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // Public auth endpoints
+                // Public auth and eligibility endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/eligibility/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Admin specific endpoints

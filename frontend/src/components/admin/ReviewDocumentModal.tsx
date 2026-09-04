@@ -1,5 +1,23 @@
 import { useState, useEffect, type FC } from 'react';
-import { X, CheckCircle2, XCircle, Clock, ShieldCheck, FileText, Loader2, BookOpen, Edit3, Save, RotateCcw } from 'lucide-react';
+import {
+  X,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+  FileText,
+  Loader2,
+  BookOpen,
+  Edit3,
+  Save,
+  RotateCcw,
+  Sparkles,
+  ExternalLink,
+  Table as TableIcon,
+  Code2,
+  Plus,
+  Trash2,
+  Layers,
+} from 'lucide-react';
 import type { DocumentItem, DocumentPageItem, DocumentStatus } from '../../types/document';
 import { documentApiService } from '../../services/documentApiService';
 
@@ -8,6 +26,12 @@ interface ReviewDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdateStatus: (id: string | number, newStatus: DocumentStatus) => void;
+}
+
+interface ParsedTableData {
+  headers: string[];
+  rows: string[][];
+  category: string;
 }
 
 export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
@@ -24,11 +48,18 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
   const [activeTab, setActiveTab] = useState<'text' | 'decision'>('text');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // View Mode: Interactive Table Grid vs Raw Text
+  const [viewMode, setViewMode] = useState<'grid' | 'raw'>('grid');
+
   // Inline Page Editor States
   const [isEditingPage, setIsEditingPage] = useState<boolean>(false);
   const [editedText, setEditedText] = useState<string>('');
+  const [parsedTable, setParsedTable] = useState<ParsedTableData>({ headers: [], rows: [], category: 'General Table' });
   const [isSavingPage, setIsSavingPage] = useState<boolean>(false);
+  const [isAiExtracting, setIsAiExtracting] = useState<boolean>(false);
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+
+  const [pageFetchError, setPageFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && document) {
@@ -37,44 +68,99 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
       setSelectedPageNum(1);
       setIsEditingPage(false);
       setSaveSuccessMessage(null);
+      setPageFetchError(null);
       loadDocumentPages(document.id);
     }
   }, [isOpen, document]);
 
-  // When selected page changes, sync edited text
+  // When selected page changes, sync edited text and parse table rows
   useEffect(() => {
     const currentPage = pages.find((p) => p.pageNumber === selectedPageNum);
-    if (currentPage) {
-      setEditedText(currentPage.extractedText);
+    const text = currentPage ? currentPage.extractedText : '';
+    setEditedText(text);
+    const table = parseMarkdownTable(text);
+    setParsedTable(table);
+    if (table.rows.length > 0) {
+      setViewMode('grid');
     }
     setIsEditingPage(false);
     setSaveSuccessMessage(null);
   }, [selectedPageNum, pages]);
 
+  const parseMarkdownTable = (text: string): ParsedTableData => {
+    if (!text || !text.includes('|')) {
+      return { headers: [], rows: [], category: 'General Table' };
+    }
+
+    const lines = text.split('\n');
+    const tableLines: string[][] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('|') || trimmed.includes('---')) {
+        continue;
+      }
+      const cells = trimmed
+        .split('|')
+        .map((p) => p.trim())
+        .filter((_, idx, arr) => idx > 0 && idx < arr.length - (trimmed.endsWith('|') ? 1 : 0));
+
+      if (cells.length > 0) {
+        tableLines.push(cells);
+      }
+    }
+
+    if (tableLines.length < 2) {
+      return { headers: [], rows: [], category: 'General Table' };
+    }
+
+    const headers = tableLines[0];
+    const rows = tableLines.slice(1);
+
+    // Auto-classify table category based on header keywords
+    const headerStr = headers.join(' ').toLowerCase();
+    let category = 'General Table';
+    if (headerStr.includes('sin. lang') || headerStr.includes('eng.') || (headerStr.includes('mat.') && headerStr.includes('sci.')) || headerStr.includes('ordinary level')) {
+      category = 'G.C.E. (O/L) Requirements Table';
+    } else if (headerStr.includes('aptitude') || headerStr.includes('practical test')) {
+      category = 'Aptitude & Practical Test Requirements';
+    } else if (headerStr.includes('uni - code') || headerStr.includes('uni-code') || headerStr.includes('unicode')) {
+      category = 'Uni-Codes Assigned Table';
+    } else if (headerStr.includes('intake') || headerStr.includes('places available')) {
+      category = 'Places Available (Proposed Intake)';
+    } else if (headerStr.includes('medium of instruction') || headerStr.includes('medium')) {
+      category = 'Medium of Instruction Table';
+    } else if (headerStr.includes('differently abled') || headerStr.includes('blind') || headerStr.includes('special')) {
+      category = 'Special Categories & Quotas';
+    } else if (headerStr.includes('prerequisite') || headerStr.includes('stream') || headerStr.includes('subject') || headerStr.includes('condition')) {
+      category = 'Course Prerequisites & Requirements';
+    } else if (headerStr.includes('cutoff') || headerStr.includes('z-score') || headerStr.includes('district')) {
+      category = 'Cutoff Marks Matrix';
+    }
+
+    return { headers, rows, category };
+  };
+
+  const stringifyRowsToMarkdown = (headers: string[], rows: string[][]): string => {
+    if (headers.length === 0) return '';
+    let md = '| ' + headers.join(' | ') + ' |\n';
+    md += '| ' + headers.map(() => ':---').join(' | ') + ' |\n';
+    for (const r of rows) {
+      md += '| ' + r.join(' | ') + ' |\n';
+    }
+    return md.trim();
+  };
+
   const loadDocumentPages = async (docId: string | number) => {
     setIsLoadingPages(true);
+    setPageFetchError(null);
     try {
       const data = await documentApiService.getDocumentPages(docId);
       setPages(data);
-    } catch (err) {
-      console.warn('Could not fetch pages from backend, using placeholder preview:', err);
-      // Fallback sample extracted text if backend is offline
-      setPages([
-        {
-          id: 1,
-          documentId: Number(docId) || 1,
-          pageNumber: 1,
-          extractedText: `${document?.title || 'Document'}\n\nAcademic Year: ${document?.academicYear || '2026/27'}\nSource Authority: ${document?.source || 'UGC'}\n\nGeneral Overview & Instructions:\nThis handbook sets forth the minimum admission criteria, subject combinations, and district quota allocations for state universities.`,
-          hasTables: false,
-        },
-        {
-          id: 2,
-          documentId: Number(docId) || 1,
-          pageNumber: 2,
-          extractedText: `Course Requirements & Stream Criteria:\n\n1. Physical Science Stream:\n- Minimum of 3 passes in Combined Mathematics, Physics, and Chemistry/ICT.\n\n2. Biological Science Stream:\n- Minimum of 3 passes in Biology, Chemistry, and Physics/Agricultural Science.\n\n3. Engineering & Technology:\n- Minimum Z-scores per district published in Annexure B.`,
-          hasTables: true,
-        }
-      ]);
+    } catch (err: any) {
+      console.error('Could not fetch pages from backend:', err);
+      setPageFetchError('Failed to load document pages from server. Please ensure the backend is running.');
+      setPages([]);
     } finally {
       setIsLoadingPages(false);
     }
@@ -91,72 +177,129 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
 
   const handleCancelEdit = () => {
     const currentPage = pages.find((p) => p.pageNumber === selectedPageNum);
-    setEditedText(currentPage?.extractedText || '');
+    const text = currentPage?.extractedText || '';
+    setEditedText(text);
+    setParsedTable(parseMarkdownTable(text));
     setIsEditingPage(false);
   };
 
-  const handleSavePageText = async () => {
+  const handleSavePageText = async (textToSave?: string) => {
     setIsSavingPage(true);
+    const finalContent = textToSave !== undefined ? textToSave : editedText;
     try {
-      await documentApiService.updatePageText(document.id, selectedPageNum, editedText);
-      // Update local pages state
+      await documentApiService.updatePageText(document.id, selectedPageNum, finalContent);
       setPages((prev) =>
-        prev.map((p) => (p.pageNumber === selectedPageNum ? { ...p, extractedText: editedText } : p))
+        prev.map((p) => (p.pageNumber === selectedPageNum ? { ...p, extractedText: finalContent } : p))
       );
+      setEditedText(finalContent);
+      setParsedTable(parseMarkdownTable(finalContent));
       setSaveSuccessMessage(`Page ${selectedPageNum} updated successfully!`);
       setIsEditingPage(false);
       setTimeout(() => setSaveSuccessMessage(null), 3000);
-    } catch (err) {
-      console.warn('Backend update failed, saving locally:', err);
-      setPages((prev) =>
-        prev.map((p) => (p.pageNumber === selectedPageNum ? { ...p, extractedText: editedText } : p))
-      );
-      setSaveSuccessMessage(`Page ${selectedPageNum} updated locally!`);
-      setIsEditingPage(false);
-      setTimeout(() => setSaveSuccessMessage(null), 3000);
+    } catch (err: any) {
+      alert(`Failed to save page text: ${err?.message || 'Server error'}`);
     } finally {
       setIsSavingPage(false);
     }
   };
 
+  const handleCellChange = (rowIdx: number, colIdx: number, value: string) => {
+    const updatedRows = parsedTable.rows.map((row, rI) =>
+      rI === rowIdx ? row.map((cell, cI) => (cI === colIdx ? value : cell)) : row
+    );
+    setParsedTable((prev) => ({ ...prev, rows: updatedRows }));
+  };
+
+  const handleSaveTableGrid = () => {
+    const markdown = stringifyRowsToMarkdown(parsedTable.headers, parsedTable.rows);
+    handleSavePageText(markdown);
+  };
+
+  const handleAddRow = () => {
+    const colCount = parsedTable.headers.length || 4;
+    const newRow = new Array(colCount).fill('');
+    setParsedTable((prev) => ({
+      ...prev,
+      rows: [...prev.rows, newRow],
+    }));
+  };
+
+  const handleDeleteRow = (index: number) => {
+    setParsedTable((prev) => ({
+      ...prev,
+      rows: prev.rows.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const handleAiExtractPageTable = async () => {
+    setIsAiExtracting(true);
+    setSaveSuccessMessage(null);
+    try {
+      const updatedPage = await documentApiService.aiExtractPageTable(document.id, selectedPageNum);
+      setPages((prev) =>
+        prev.map((p) => (p.pageNumber === selectedPageNum ? updatedPage : p))
+      );
+      setEditedText(updatedPage.extractedText);
+      const table = parseMarkdownTable(updatedPage.extractedText);
+      setParsedTable(table);
+      if (table.rows.length > 0) {
+        setViewMode('grid');
+      }
+      setSaveSuccessMessage(`✨ Page ${selectedPageNum} extracted with Gemini AI!`);
+      setTimeout(() => setSaveSuccessMessage(null), 4000);
+    } catch (err: any) {
+      console.error('AI Table extraction failed:', err);
+      alert(`AI Extraction Error: ${err.message || 'Could not extract table.'}`);
+    } finally {
+      setIsAiExtracting(false);
+    }
+  };
+
   const handleApply = async () => {
+    if (!document) return;
     setIsSubmitting(true);
     try {
       const backendStatus = selectedStatus === 'Verified' ? 'APPROVED' : selectedStatus;
       await documentApiService.updateStatus(document.id, backendStatus as any, notes);
       onUpdateStatus(document.id, selectedStatus);
-    } catch (err) {
-      console.warn('Backend update failed, applying local state:', err);
-      onUpdateStatus(document.id, selectedStatus);
+      onClose();
+    } catch (err: any) {
+      console.error('Backend update failed:', err);
+      alert(`Failed to update document status: ${err?.message || 'Server error. Please verify the backend is running.'}`);
     } finally {
       setIsSubmitting(false);
-      onClose();
     }
   };
 
   const selectedPage = pages.find((p) => p.pageNumber === selectedPageNum) || pages[0];
+  const downloadUrl = documentApiService.getDocumentDownloadUrl(document.id);
+  const docTypeStr = (document?.type || document?.documentType || '').toLowerCase();
+  const isCutoffDoc = docTypeStr.includes('cutoff') || docTypeStr.includes('rank') || docTypeStr.includes('mark');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-slate-900/70 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-xs border border-blue-100">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-slate-900">Admin Document Review</h2>
+                <h2 className="text-lg font-bold text-slate-900">Admin Document Review & Ingestion</h2>
+                <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {document.academicYear || '2026/27'}
+                </span>
               </div>
-              <p className="text-xs text-slate-500 truncate max-w-md">{document.title}</p>
+              <p className="text-xs text-slate-500 truncate max-w-lg">{document.title}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* View Tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold mr-2">
+            <div className="flex bg-slate-200/70 p-1 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setActiveTab('text')}
@@ -165,7 +308,7 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                Extracted Text ({pages.length} {pages.length === 1 ? 'Page' : 'Pages'})
+                Review Pages ({pages.length})
               </button>
               <button
                 type="button"
@@ -175,7 +318,7 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Verification Action
+                Approve & Sync
               </button>
             </div>
 
@@ -189,56 +332,87 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {activeTab === 'text' ? (
-            <div className="space-y-4">
+            <div>
               {isLoadingPages ? (
-                <div className="py-16 text-center text-slate-400">
+                <div className="py-20 text-center text-slate-400">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
                   <p className="text-sm font-medium">Loading extracted document pages...</p>
                 </div>
+              ) : pageFetchError ? (
+                <div className="py-12 text-center text-slate-500 bg-red-50/50 border border-red-200/60 rounded-xl p-6">
+                  <p className="text-sm font-semibold text-red-600 mb-3">{pageFetchError}</p>
+                  <button
+                    type="button"
+                    onClick={() => loadDocumentPages(document.id)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs cursor-pointer"
+                  >
+                    Retry Loading
+                  </button>
+                </div>
+              ) : pages.length === 0 ? (
+                <div className="py-16 text-center text-slate-400">
+                  <p className="text-sm">No pages extracted for this document.</p>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Left: Page Navigator */}
-                  <div className="md:col-span-1 border border-slate-200 rounded-xl p-3 bg-slate-50/50 max-h-[500px] overflow-y-auto space-y-1.5">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">
-                      Pages ({pages.length})
-                    </div>
-                    {pages.map((p) => (
-                      <button
-                        key={p.pageNumber}
-                        type="button"
-                        onClick={() => setSelectedPageNum(p.pageNumber)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                          selectedPageNum === p.pageNumber
-                            ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60'
-                        }`}
+                  {/* Left: Page Navigator & PDF Link */}
+                  <div className="md:col-span-1 border border-slate-200 rounded-xl p-3 bg-slate-50/50 max-h-[560px] overflow-y-auto flex flex-col space-y-2.5">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        Pages ({pages.length})
+                      </span>
+                      <a
+                        href={downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 hover:underline"
+                        title="Download / Preview original PDF in new tab"
                       >
-                        <span className="flex items-center gap-2">
-                          <FileText className="w-3.5 h-3.5" />
-                          Page {p.pageNumber}
-                        </span>
-                        {p.hasTables && (
-                          <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
-                            selectedPageNum === p.pageNumber ? 'bg-blue-700 text-white' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            Table
+                        <ExternalLink className="w-3 h-3" />
+                        Original PDF
+                      </a>
+                    </div>
+                    
+                    <div className="space-y-1.5 flex-1 overflow-y-auto pr-1">
+                      {pages.map((p) => (
+                        <button
+                          key={p.pageNumber}
+                          type="button"
+                          onClick={() => setSelectedPageNum(p.pageNumber)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                            selectedPageNum === p.pageNumber
+                              ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                              : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/60'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5" />
+                            Page {p.pageNumber}
                           </span>
-                        )}
-                      </button>
-                    ))}
+                          {p.hasTables && (
+                            <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
+                              selectedPageNum === p.pageNumber ? 'bg-purple-700 text-white' : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              Table
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Right: Extracted Page Content & Editor */}
-                  <div className="md:col-span-3 border border-slate-200 rounded-xl p-4 bg-white max-h-[500px] flex flex-col">
-                    {/* Header with Title & Edit / Save Buttons */}
+                  {/* Right: Extracted Page Content & Interactive Grid Editor */}
+                  <div className="md:col-span-3 border border-slate-200 rounded-xl p-4 bg-white max-h-[560px] flex flex-col">
+                    {/* Header with Title, Mode Switcher & Edit Actions */}
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 flex-shrink-0">
-                      <div className="text-xs font-bold text-slate-700 flex items-center gap-2">
-                        <span>Page {selectedPage?.pageNumber || 1} Extracted Text</span>
-                        {selectedPage?.hasTables && (
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded">
-                            Contains Structured Tables
+                      <div className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                        <span>Page {selectedPage?.pageNumber || 1} Data</span>
+                        {selectedPage?.hasTables && parsedTable.headers.length > 0 && (
+                          <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-purple-600" />
+                            {parsedTable.category} (AI Extracted)
                           </span>
                         )}
                         {saveSuccessMessage && (
@@ -249,8 +423,33 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
                         )}
                       </div>
 
-                      {/* Edit Actions */}
+                      {/* Right View Toggle & Action Buttons */}
                       <div className="flex items-center gap-2">
+                        {parsedTable.rows.length > 0 && !isEditingPage && (
+                          <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-medium mr-2">
+                            <button
+                              type="button"
+                              onClick={() => setViewMode('grid')}
+                              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                                viewMode === 'grid' ? 'bg-white text-blue-600 shadow-2xs font-semibold' : 'text-slate-600'
+                              }`}
+                            >
+                              <TableIcon className="w-3 h-3" />
+                              Grid Table ({parsedTable.rows.length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setViewMode('raw')}
+                              className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                                viewMode === 'raw' ? 'bg-white text-blue-600 shadow-2xs font-semibold' : 'text-slate-600'
+                              }`}
+                            >
+                              <Code2 className="w-3 h-3" />
+                              Raw Text
+                            </button>
+                          </div>
+                        )}
+
                         {isEditingPage ? (
                           <>
                             <button
@@ -264,45 +463,148 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
                             <button
                               type="button"
                               disabled={isSavingPage}
-                              onClick={handleSavePageText}
+                              onClick={() => handleSavePageText()}
                               className="flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                             >
                               {isSavingPage ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               ) : (
-                                <Save className="w-3 h-3" />
+                                <Save className="w-3.5 h-3.5" />
                               )}
-                              Save Page
+                              Save Changes
                             </button>
                           </>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={handleStartEdit}
-                            className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200/60 transition-colors cursor-pointer"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                            Edit Page Text
-                          </button>
+                          <>
+                            {/* On-Demand Gemini Vision Extract Button */}
+                            <button
+                              type="button"
+                              disabled={isAiExtracting}
+                              onClick={handleAiExtractPageTable}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                              title="Extract structured table from this page using Gemini Vision"
+                            >
+                              {isAiExtracting ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Gemini Extracting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                  <span>Extract with Gemini AI</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleStartEdit}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200/60 transition-colors cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              Edit Text
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
 
-                    {/* Content View or Inline Editor */}
+                    {/* Content View: Interactive Table Grid / Raw Text Editor */}
                     {isEditingPage ? (
                       <div className="flex-1 flex flex-col">
                         <textarea
                           value={editedText}
                           onChange={(e) => setEditedText(e.target.value)}
-                          rows={14}
+                          rows={16}
                           className="flex-1 w-full text-xs text-slate-900 font-mono leading-relaxed bg-slate-50 p-3 rounded-lg border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none overflow-y-auto"
-                          placeholder="Edit page text directly here..."
+                          placeholder="Edit page markdown text directly here..."
                         />
                         <p className="text-[11px] text-slate-400 mt-2">
-                          💡 You can correct OCR spelling typos, course names, or cutoff rows directly before approving.
+                          💡 You can correct OCR typos, course names, or table entries directly before final approval.
                         </p>
                       </div>
+                    ) : viewMode === 'grid' && parsedTable.rows.length > 0 ? (
+                      /* Interactive Table Grid */
+                      <div className="flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-y-auto border border-slate-200 rounded-lg">
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead className="bg-slate-50 text-slate-600 font-bold sticky top-0 border-b border-slate-200 shadow-2xs">
+                              <tr>
+                                {parsedTable.headers.map((header, hIdx) => (
+                                  <th
+                                    key={hIdx}
+                                    className="p-2 border-r border-slate-200 uppercase tracking-wider text-[11px] font-semibold text-slate-700"
+                                  >
+                                    {header}
+                                  </th>
+                                ))}
+                                <th className="p-2 w-12 text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                              {parsedTable.rows.map((row, rIdx) => (
+                                <tr key={rIdx} className="hover:bg-blue-50/40 transition-colors">
+                                  {row.map((cell, cIdx) => (
+                                    <td key={cIdx} className="p-1.5 border-r border-slate-100">
+                                      <input
+                                        type="text"
+                                        value={cell}
+                                        onChange={(e) => handleCellChange(rIdx, cIdx, e.target.value)}
+                                        className={`w-full bg-transparent px-1.5 py-0.5 rounded border border-transparent hover:border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none ${
+                                          cIdx === 0
+                                            ? 'font-semibold text-slate-900'
+                                            : cIdx === row.length - 1 && (/^[\d.]+$|^NQC$/i.test(cell) || parsedTable.category.includes('Cutoff'))
+                                            ? 'font-mono font-bold text-blue-700'
+                                            : 'text-slate-800'
+                                        }`}
+                                      />
+                                    </td>
+                                  ))}
+                                  <td className="p-1.5 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteRow(rIdx)}
+                                      className="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors cursor-pointer"
+                                      title="Delete Row"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Table Footer Actions */}
+                        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 mt-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleAddRow}
+                            className="flex items-center gap-1 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Add Row
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isSavingPage}
+                            onClick={handleSaveTableGrid}
+                            className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {isSavingPage ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Save className="w-3.5 h-3.5" />
+                            )}
+                            Save Table Changes
+                          </button>
+                        </div>
+                      </div>
                     ) : (
+                      /* Raw Preformatted Text View */
                       <pre className="flex-1 text-xs text-slate-800 font-mono whitespace-pre-wrap leading-relaxed bg-slate-50/60 p-3 rounded-lg border border-slate-100 overflow-y-auto">
                         {selectedPage?.extractedText || 'No text extracted on this page.'}
                       </pre>
@@ -312,98 +614,101 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
               )}
             </div>
           ) : (
-            /* Decision Tab */
-            <div className="space-y-5">
+            /* Decision / Verification Tab */
+            <div className="space-y-6">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                  Select Verification Status
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+                  Verification Decision
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => setSelectedStatus('APPROVED')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                      selectedStatus === 'APPROVED' || selectedStatus === 'Verified'
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20 font-semibold'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    className={`flex items-start gap-4 p-5 rounded-2xl border transition-all text-left cursor-pointer ${
+                      selectedStatus === 'APPROVED'
+                        ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600 mb-1.5" />
-                    Approve (Trusted Knowledge)
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStatus('PENDING_REVIEW')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                      selectedStatus === 'PENDING_REVIEW' || selectedStatus === 'Pending' || selectedStatus === 'Under Review'
-                        ? 'border-amber-500 bg-amber-50 text-amber-800 ring-2 ring-amber-500/20 font-semibold'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Clock className="w-6 h-6 text-amber-600 mb-1.5" />
-                    Pending Review
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-sm">
+                        {isCutoffDoc ? 'Approve Cutoff Document & Sync Cutoffs' : 'Approve UGC Handbook Reference'}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        {isCutoffDoc
+                          ? 'Promotes all extracted cutoff marks into the production database for the Eligibility Engine.'
+                          : 'Approves the handbook as an official guideline reference (preserves cutoff tables without changes).'}
+                      </div>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedStatus('REJECTED')}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                    className={`flex items-start gap-4 p-5 rounded-2xl border transition-all text-left cursor-pointer ${
                       selectedStatus === 'REJECTED'
-                        ? 'border-red-500 bg-red-50 text-red-800 ring-2 ring-red-500/20 font-semibold'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <XCircle className="w-6 h-6 text-red-600 mb-1.5" />
-                    Reject Document
+                    <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-sm">Reject / Needs Correction</div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Marks the document as rejected. No data will be ingested into production.
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Reviewer Notes / Verification Log
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Audit Notes (Optional)
                 </label>
                 <textarea
-                  rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Verified against UGC gazette published on 2026-08-28. Page count and cutoffs confirmed."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+                  rows={3}
+                  placeholder="e.g. Verified against UGC 2026/27 Gazette..."
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                 />
+              </div>
+
+              <div className="p-4 bg-blue-50/60 border border-blue-200/60 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Layers className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold text-blue-900">
+                      {isCutoffDoc ? 'Eligibility Engine Integration' : 'Official Reference Integration'}
+                    </div>
+                    <div className="text-[11px] text-blue-700">
+                      {isCutoffDoc
+                        ? 'Approved cutoffs will be instantly queryable by students evaluating degree requirements.'
+                        : 'Approved handbook will be available for students as an official reference guide.'}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleApply}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save & Apply Decision'
+                  )}
+                </button>
               </div>
             </div>
           )}
-        </div>
-
-        {/* Modal Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-          <div className="text-xs text-slate-400">
-            {document.fileName} • {document.fileSize || 'PDF Document'}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleApply}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors cursor-pointer"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4" />
-              )}
-              {selectedStatus === 'APPROVED' ? 'Approve as Trusted' : selectedStatus === 'REJECTED' ? 'Reject Document' : 'Save Status'}
-            </button>
-          </div>
         </div>
       </div>
     </div>
