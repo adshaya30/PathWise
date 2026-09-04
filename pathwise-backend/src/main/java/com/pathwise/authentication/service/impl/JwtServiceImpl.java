@@ -14,20 +14,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    @Value("${app.jwt.secret:pathwiseSecretKeyForJwtAuthenticationMustBeAtLeast256BitsLong1234567890}")
+    @Value("${app.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${app.jwt.access-token-expiration-ms:900000}") // 15 minutes default (15 * 60 * 1000 ms)
+    @Value("${app.jwt.access-token-expiration-ms}")
     private long accessTokenExpirationMs;
 
-    @Value("${app.jwt.refresh-token-expiration-ms:86400000}") // 1 day default
+    @Value("${app.jwt.refresh-token-expiration-ms}")
     private long refreshTokenExpirationMs;
 
-    @Value("${app.jwt.remember-me-expiration-ms:2592000000}") // 30 days default
+    @Value("${app.jwt.remember-me-expiration-ms}")
     private long rememberMeExpirationMs;
 
     private SecretKey getSigningKey() {
@@ -38,7 +39,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateAccessToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getId());
+        claims.put("userId", user.getId() != null ? user.getId().toString() : null);
         claims.put("role", user.getRole().name());
         claims.put("emailVerified", user.isEmailVerified());
 
@@ -53,11 +54,15 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateRefreshToken(User user, boolean rememberMe) {
-        long expiry = rememberMe ? rememberMeExpirationMs : refreshTokenExpirationMs;
+        long expiry = rememberMe
+                ? rememberMeExpirationMs
+                : refreshTokenExpirationMs;
+
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(user.getEmail())
                 .claim("rememberMe", rememberMe)
-                .issuedAt(new Date(System.currentTimeMillis()))
+                .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(getSigningKey())
                 .compact();

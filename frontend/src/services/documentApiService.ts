@@ -81,7 +81,7 @@ export const documentApiService = {
   /**
    * Upload a new official document
    */
-  async uploadDocument(payload: DocumentUploadPayload): Promise<DocumentItem> {
+  async uploadDocument(payload: DocumentUploadPayload, signal?: AbortSignal): Promise<DocumentItem> {
     const formData = new FormData();
     formData.append('file', payload.file);
     formData.append('title', payload.title);
@@ -95,6 +95,7 @@ export const documentApiService = {
     const response = await authFetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       body: formData,
+      signal,
     });
 
     if (!response.ok) {
@@ -214,6 +215,47 @@ export const documentApiService = {
     if (!response.ok) {
       throw new Error(`Failed to delete document: ${response.statusText}`);
     }
+  },
+
+  /**
+   * AI Auto-Extract Cutoff Table from a specific PDF page
+   */
+  async aiExtractPageTable(
+    documentId: string | number,
+    pageNumber: number
+  ): Promise<DocumentPageItem> {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}/pages/${pageNumber}/ai-extract`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Failed to AI auto-extract page table: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  /**
+   * Bulk AI Auto-Extract ALL Cutoff Table pages in the document
+   */
+  async aiExtractAllTables(
+    documentId: string | number
+  ): Promise<DocumentPageItem[]> {
+    const response = await authFetch(`${API_BASE_URL}/${documentId}/ai-extract-all`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Failed to bulk AI auto-extract tables: ${response.statusText}`);
+    }
+    return response.json();
   },
 
   /**

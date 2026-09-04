@@ -28,6 +28,31 @@ import java.util.Map;
 public class AdminDocumentController {
 
     private final DocumentManagementService documentManagementService;
+    private final com.pathwise.admin.service.AiTableExtractionService aiTableExtractionService;
+
+    /**
+     * AI-Powered Table / Cutoff Mark Extraction on a specific PDF page
+     */
+    @PostMapping("/{id}/pages/{pageNumber}/ai-extract")
+    public ResponseEntity<DocumentPageResponseDto> extractPageTableWithAi(
+            @PathVariable Long id,
+            @PathVariable Integer pageNumber
+    ) {
+        log.info("Request received to AI auto-extract table for Document ID: {} Page: {}", id, pageNumber);
+        return ResponseEntity.ok(aiTableExtractionService.extractPageTableWithAi(id, pageNumber));
+    }
+
+    /**
+     * Bulk AI Auto-Extraction for ALL table pages in the document with optional maxPages safety limit
+     */
+    @PostMapping("/{id}/ai-extract-all")
+    public ResponseEntity<List<DocumentPageResponseDto>> extractAllTablesWithAi(
+            @PathVariable Long id,
+            @RequestParam(value = "maxPages", required = false) Integer maxPages
+    ) {
+        log.info("Request received to bulk AI auto-extract tables for Document ID: {} (maxPages: {})", id, maxPages);
+        return ResponseEntity.ok(aiTableExtractionService.extractAllTablesWithAi(id, maxPages));
+    }
 
     /**
      * Upload a new official PDF document (UGC, NIE, etc.)

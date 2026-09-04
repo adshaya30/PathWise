@@ -9,9 +9,11 @@ import com.pathwise.admin.entity.DocumentPage;
 import com.pathwise.admin.entity.enums.DocumentStatus;
 import com.pathwise.admin.repository.DocumentPageRepository;
 import com.pathwise.admin.repository.DocumentRepository;
+import com.pathwise.admin.service.AiTableExtractionService;
 import com.pathwise.admin.service.DocumentManagementService;
 import com.pathwise.admin.service.FileStorageService;
 import com.pathwise.admin.service.PdfExtractionService;
+import com.pathwise.course.service.CutoffIngestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +35,10 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
     private final DocumentPageRepository documentPageRepository;
     private final FileStorageService fileStorageService;
     private final PdfExtractionService pdfExtractionService;
+    private final AiTableExtractionService aiTableExtractionService;
+    private final com.pathwise.admin.service.ApprovedDocumentProcessingService approvedDocumentProcessingService;
 
     @Override
-    @Transactional
     public DocumentResponseDto uploadAndProcessDocument(MultipartFile file, DocumentUploadRequestDto dto) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("PDF file is required and cannot be empty.");
@@ -44,23 +48,25 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
         log.info("Processing upload request: title='{}', source='{}', file='{}'",
                 dto.getTitle(), dto.getSource(), originalFilename);
 
+        // Read file bytes once for extraction and storage
+        byte[] fileBytes = file.getBytes();
+
         // 1. Calculate human-readable file size
         long bytes = file.getSize();
         String fileSizeStr = bytes >= 1024 * 1024
                 ? String.format("%.1f MB", bytes / (1024.0 * 1024.0))
                 : String.format("%.1f KB", bytes / 1024.0);
 
-        // 2. Generate clean storage path for Supabase Storage
+        // 2. Upload file to Supabase Storage (Network I/O - OUTSIDE DB Transaction)
         String cleanYear = dto.getAcademicYear().replaceAll("[^a-zA-Z0-9_-]", "_");
         String cleanSource = dto.getSource().replaceAll("[^a-zA-Z0-9_-]", "_");
         String cleanName = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
         String storagePath = String.format("documents/%s_%s_%d_%s", cleanYear, cleanSource, System.currentTimeMillis(), cleanName);
 
-        // 3. Upload file to Supabase Storage (with local fallback)
         String uploadedPath = fileStorageService.uploadFile(file, storagePath);
 
-        // 4. Create Document Entity
-        Document document = Document.builder()
+        // 3. Save Document Metadata in a fast, dedicated DB transaction
+        Document initialDoc = Document.builder()
                 .title(dto.getTitle().trim())
                 .source(dto.getSource().trim())
                 .academicYear(dto.getAcademicYear().trim())
@@ -72,24 +78,59 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
                 .status(DocumentStatus.PENDING_REVIEW)
                 .description(dto.getDescription())
                 .uploadedAt(LocalDateTime.now())
+                .totalPages(0)
                 .build();
 
-        // 5. Extract text page-by-page using Apache PDFBox
+        Document savedDoc = saveDocumentMetadata(initialDoc);
+        log.info("Saved initial document metadata with ID: {}", savedDoc.getId());
+
+        // 4. Extract text & run Gemini Vision on table pages (CPU & AI Network I/O - OUTSIDE DB Transaction)
+        List<DocumentPage> pages = new ArrayList<>();
         try {
-            List<DocumentPage> pages = pdfExtractionService.extractPages(file.getInputStream(), document);
-            document.setTotalPages(pages.size());
-            document.setPages(pages);
+            pages = pdfExtractionService.extractPages(fileBytes, savedDoc);
+
+            // Automatically run Gemini Vision extraction on pages detected with tables
+            for (DocumentPage page : pages) {
+                if (Boolean.TRUE.equals(page.getHasTables())) {
+                    log.info("Page {} flagged with table. Automatically applying Gemini Vision table extraction...", page.getPageNumber());
+                    try {
+                        String aiTableText = aiTableExtractionService.extractTableDirectly(fileBytes, page.getPageNumber());
+                        if (aiTableText != null && !aiTableText.isBlank()) {
+                            page.setExtractedText(aiTableText);
+                            log.info("Successfully auto-extracted table for page {} using Gemini AI.", page.getPageNumber());
+                        }
+                    } catch (Exception aiEx) {
+                        log.warn("Automatic Gemini extraction skipped for page {}: {}", page.getPageNumber(), aiEx.getMessage());
+                    }
+                }
+            }
             log.info("Extracted {} pages from PDF.", pages.size());
         } catch (Exception e) {
             log.warn("Text extraction warning: {}", e.getMessage());
-            document.setTotalPages(0);
         }
 
-        // 6. Save Document and cascade save DocumentPage entities to PostgreSQL
-        Document savedDocument = documentRepository.save(document);
-        log.info("Successfully stored document with ID: {} and status: PENDING_REVIEW", savedDocument.getId());
+        // 5. Save all extracted pages in a fast, dedicated DB transaction
+        Document completedDoc = saveExtractedPages(savedDoc.getId(), pages);
+        log.info("Successfully stored document with ID: {} and {} pages", completedDoc.getId(), pages.size());
 
-        return DocumentResponseDto.fromEntity(savedDocument);
+        return DocumentResponseDto.fromEntity(completedDoc);
+    }
+
+    @Transactional
+    public Document saveDocumentMetadata(Document doc) {
+        return documentRepository.save(doc);
+    }
+
+    @Transactional
+    public Document saveExtractedPages(Long documentId, List<DocumentPage> pages) {
+        Document doc = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found with ID: " + documentId));
+        doc.setTotalPages(pages.size());
+        for (DocumentPage page : pages) {
+            page.setDocument(doc);
+        }
+        documentPageRepository.saveAll(pages);
+        return documentRepository.save(doc);
     }
 
     @Override
@@ -161,6 +202,16 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
 
         Document updated = documentRepository.save(doc);
         log.info("Updated document ID: {} status to: {}", id, dto.getStatus());
+
+        // When document is approved, trigger modular domain table promotions
+        if (dto.getStatus() == DocumentStatus.APPROVED) {
+            try {
+                approvedDocumentProcessingService.processApprovedDocument(updated);
+            } catch (Exception ex) {
+                log.error("Error during post-approval domain processing for Document ID {}: {}", id, ex.getMessage(), ex);
+            }
+        }
+
         return DocumentResponseDto.fromEntity(updated);
     }
 
@@ -182,6 +233,7 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
 
     @Override
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "aiTableExtractions", allEntries = true)
     public void deleteDocument(Long id) {
         Document doc = documentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Document not found with ID: " + id));
@@ -200,6 +252,7 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
 
     @Override
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "aiTableExtractions", key = "#documentId + '_' + #pageNumber")
     public DocumentPageResponseDto updatePageText(Long documentId, Integer pageNumber, String newText) {
         DocumentPage page = documentPageRepository.findByDocumentIdAndPageNumber(documentId, pageNumber)
                 .orElseThrow(() -> new RuntimeException(String.format("Page %d not found for document ID %d", pageNumber, documentId)));

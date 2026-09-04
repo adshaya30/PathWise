@@ -1,5 +1,5 @@
 import { useState, useRef, type FC, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
-import { X, Upload, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Upload, FileText, AlertCircle, Loader2, XCircle } from 'lucide-react';
 import type { DocumentItem, DocumentSource, DocumentType } from '../../types/document';
 import { documentApiService } from '../../services/documentApiService';
 
@@ -28,6 +28,8 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // AbortController ref — lets us cancel the in-flight fetch when user clicks Cancel
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   if (!isOpen) return null;
 
@@ -87,6 +89,10 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
       return;
     }
 
+    // Create a fresh AbortController for this upload
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsUploading(true);
     setError(null);
     setUploadProgress(30);
@@ -96,14 +102,17 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
     try {
       if (selectedFile) {
         setUploadProgress(60);
-        const uploadedDoc = await documentApiService.uploadDocument({
-          file: selectedFile,
-          title: title.trim(),
-          source: finalSource,
-          academicYear,
-          documentType: type,
-          description: description.trim() || undefined,
-        });
+        const uploadedDoc = await documentApiService.uploadDocument(
+          {
+            file: selectedFile,
+            title: title.trim(),
+            source: finalSource,
+            academicYear,
+            documentType: type,
+            description: description.trim() || undefined,
+          },
+          controller.signal   // ← pass abort signal to fetch
+        );
 
         setUploadProgress(100);
         onUploadSuccess(uploadedDoc);
@@ -130,12 +139,33 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
       resetForm();
       onClose();
     } catch (err: any) {
+      // AbortError means the user clicked Cancel — close silently
+      if (err.name === 'AbortError' || controller.signal.aborted) {
+        setIsUploading(false);
+        setUploadProgress(0);
+        resetForm();
+        onClose();
+        return;
+      }
       console.error('Document upload error:', err);
       setError(err.message || 'Failed to upload and process document. Please ensure you are logged in as Admin and backend is running.');
       setIsUploading(false);
       setUploadProgress(0);
+    } finally {
+      abortControllerRef.current = null;
     }
   };
+
+  /** Abort the in-flight upload (if any) and close the modal */
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    } else {
+      resetForm();
+      onClose();
+    }
+  };
+
 
   const resetForm = () => {
     setSelectedFile(null);
@@ -160,9 +190,9 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
             </p>
           </div>
           <button
-            onClick={onClose}
-            disabled={isUploading}
+            onClick={handleCancel}
             className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            title={isUploading ? 'Cancel upload' : 'Close'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -310,14 +340,13 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as DocumentType)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer font-medium"
               >
-                <option value="Admissions">Admissions</option>
-                <option value="Curriculum">Curriculum</option>
-                <option value="Cutoff Ranks">Cutoff Ranks</option>
-                <option value="Syllabus">Syllabus</option>
-                <option value="Requirements">Requirements</option>
-                <option value="General Policy">General Policy</option>
+                <option value="Cutoff Ranks">Cutoff Marks / Minimum Z-Scores</option>
+                <option value="Admissions">UGC Admission Handbook / Policies</option>
+                <option value="Requirements">Prerequisites & Eligibility Rules</option>
+                <option value="Curriculum">Curriculum / Syllabi</option>
+                <option value="General Policy">General Policy / Circular</option>
               </select>
             </div>
           </div>
@@ -356,11 +385,12 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
-              onClick={onClose}
-              disabled={isUploading}
-              className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+              onClick={handleCancel}
+              className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors
+                text-slate-600 hover:text-red-700 hover:bg-red-50 border border-slate-200 hover:border-red-200"
             >
-              Cancel
+              {isUploading && <XCircle className="w-4 h-4" />}
+              {isUploading ? 'Cancel Upload' : 'Cancel'}
             </button>
             <button
               type="submit"
