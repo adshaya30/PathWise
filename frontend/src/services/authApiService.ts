@@ -1,6 +1,7 @@
 export interface UserDto {
   id: string;
   email: string;
+  fullName?: string;
   role: 'USER' | 'ADMIN';
   emailVerified: boolean;
   accountLocked: boolean;
@@ -72,16 +73,39 @@ export const authApiService = {
   },
 
   async login(email: string, password: string, rememberMe = false): Promise<AuthResponseDto> {
-    const response = await fetch(`${AUTH_API_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, rememberMe }),
-      credentials: 'include',
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${AUTH_API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, rememberMe }),
+        credentials: 'include',
+      });
+    } catch {
+      throw new Error(
+        'Cannot reach the server. Start the backend from pathwise-backend (mvn spring-boot:run) and ensure it is listening on port 8080.'
+      );
+    }
 
-    const result: ApiResponse<AuthResponseDto> = await response.json();
+    let result: ApiResponse<AuthResponseDto>;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(
+        response.status === 503
+          ? 'Server database is unavailable. Check PostgreSQL / DB_URL in pathwise-backend/.env and restart the backend.'
+          : `Login failed (HTTP ${response.status}). Check backend logs.`
+      );
+    }
+
     if (!response.ok || !result.success || !result.data) {
-      throw new Error(result.message || 'Login failed. Please check your email and password.');
+      const message = result.message || 'Login failed. Please check your email and password.';
+      if (response.status === 503 || /database|jdbc|hikari|postgresql/i.test(message)) {
+        throw new Error(
+          'Server database is unavailable. Verify PostgreSQL is running and DB_URL in pathwise-backend/.env, then restart the backend.'
+        );
+      }
+      throw new Error(message);
     }
 
     this.saveAuth(result.data);
@@ -177,6 +201,10 @@ export const authApiService = {
 
   getStoredToken(): string | null {
     return localStorage.getItem('pathwise_token');
+  },
+
+  getAccessToken(): string | null {
+    return this.getStoredToken();
   },
 
   isAdmin(): boolean {

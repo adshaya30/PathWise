@@ -2,6 +2,7 @@ package com.pathwise.course.service.impl;
 
 import com.pathwise.admin.entity.Document;
 import com.pathwise.admin.entity.DocumentPage;
+import com.pathwise.admin.repository.DocumentPageRepository;
 import com.pathwise.course.entity.Course;
 import com.pathwise.course.entity.CourseIntake;
 import com.pathwise.course.entity.University;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class CourseIntakeServiceImpl implements CourseIntakeService {
 
     private final CourseIntakeRepository courseIntakeRepository;
+    private final DocumentPageRepository documentPageRepository;
     private final UniversityRepository universityRepository;
     private final CourseRepository courseRepository;
 
@@ -34,19 +36,28 @@ public class CourseIntakeServiceImpl implements CourseIntakeService {
     @Override
     @Transactional
     public int promoteHandbookIntakes(Document document) {
-        if (document == null || document.getPages() == null || document.getPages().isEmpty()) {
+        if (document == null || document.getId() == null) {
+            return 0;
+        }
+
+        List<DocumentPage> pages = (document.getPages() != null && !document.getPages().isEmpty())
+                ? document.getPages()
+                : documentPageRepository.findByDocumentIdOrderByPageNumberAsc(document.getId());
+
+        if (pages == null || pages.isEmpty()) {
+            log.warn("No pages found for Document ID: {}", document.getId());
             return 0;
         }
 
         String academicYear = document.getAcademicYear() != null ? document.getAcademicYear().trim() : "2025/2026";
-        log.info("Processing Course Intakes from Document ID: {} '{}' for Academic Year: {}",
-                document.getId(), document.getTitle(), academicYear);
+        log.info("Processing Course Intakes from Document ID: {} '{}' for Academic Year: {} across {} pages",
+                document.getId(), document.getTitle(), academicYear, pages.size());
 
         List<CourseIntake> intakeRows = new ArrayList<>();
         Set<String> distinctUniversities = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         Set<String> distinctCourses = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 
-        for (DocumentPage page : document.getPages()) {
+        for (DocumentPage page : pages) {
             if (page.getExtractedText() == null || page.getExtractedText().isBlank()) {
                 continue;
             }

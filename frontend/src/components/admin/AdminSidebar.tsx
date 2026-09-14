@@ -42,7 +42,7 @@ export const AdminSidebar: FC<AdminSidebarProps> = ({ isMobileOpen, onCloseMobil
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white text-slate-700 w-64 select-none border-r border-slate-200">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
+      <div className="flex items-center gap-3 px-6 h-[74px] border-b border-slate-200/80 flex-shrink-0">
         <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
           <Compass className="w-6 h-6" />
         </div>

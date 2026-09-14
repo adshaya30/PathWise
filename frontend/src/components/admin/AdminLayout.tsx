@@ -1,40 +1,33 @@
-import { useState, type FC, type ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
-import { AdminSidebar } from './AdminSidebar';
-import { AdminHeader } from './AdminHeader';
+import { type FC, type ReactNode } from 'react';
+import { DashboardLayout } from '../common/DashboardLayout';
+import { adminNavItems, adminBottomNavItems } from '../../config/navigationConfigs';
 
 interface AdminLayoutProps {
   title?: string;
   subtitle?: string;
+  actions?: ReactNode;
   children?: ReactNode;
 }
 
 export const AdminLayout: FC<AdminLayoutProps> = ({
   title = 'Documents',
   subtitle = 'Upload, review, and verify knowledge-base source documents.',
+  actions,
   children,
 }) => {
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-
   return (
-    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden">
-      {/* Sidebar */}
-      <AdminSidebar
-        isMobileOpen={isMobileOpen}
-        onCloseMobile={() => setIsMobileOpen(false)}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <AdminHeader
-          onMenuClick={() => setIsMobileOpen(true)}
-          title={title}
-          subtitle={subtitle}
-        />
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
-          {children || <Outlet />}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      brandTitle="PathWise"
+      portalBadge="Admin Portal"
+      navItems={adminNavItems}
+      bottomNavItems={adminBottomNavItems}
+      title={title}
+      subtitle={subtitle}
+      actions={actions}
+      maxWidthClass="w-full max-w-[1650px] px-4 md:px-8"
+    >
+      {children}
+    </DashboardLayout>
   );
 };
+

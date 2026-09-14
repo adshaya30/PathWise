@@ -26,6 +26,10 @@ public class EligibilityResultDto {
     private int highChanceCount;
     private int moderateChanceCount;
     private int reachChanceCount;
+    private int targetChanceCount;
+
+    /** Academic year used for cutoff / handbook lookups */
+    private String academicYear;
 
     private List<MatchedUniCodeDto> eligibleUniCodes;
     private String summaryMessage;
@@ -42,8 +46,16 @@ public class EligibilityResultDto {
         private Double cutoffZScore;     // e.g. 2.3517
         private Double zScoreDifference; // studentZScore - cutoffZScore
         private String chanceCategory;   // "HIGH_CHANCE", "TARGET_CHANCE", "REACH_CHANCE"
+        /** ELIGIBLE, NEEDS_REVIEW, NOT_ELIGIBLE */
+        private String eligibilityStatus;
         private String selectionMethod;  // "MERIT_AND_DISTRICT", "ALL_ISLAND_MERIT_ONLY"
         private boolean hasAptitudeTest;
         private String prerequisitesMet;
+        private boolean olRequirementsMet;
+        private String olRequirementsSummary;
+        private Integer proposedIntake;
+        private String mediumOfInstruction;
+        private boolean usesEstimatedCutoff;
+        private boolean disadvantagedQuotaApplied;
     }
 }

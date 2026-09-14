@@ -1,13 +1,17 @@
 package com.pathwise.config;
 
+import com.pathwise.afteral.exception.AlResultNotFoundException;
 import com.pathwise.authentication.dto.ApiResponseDto;
 import com.pathwise.authentication.exception.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -91,6 +95,28 @@ public class GlobalExceptionHandler {
         log.warn("Access denied: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponseDto.error("You do not have permission to perform this action"));
+    }
+
+    @ExceptionHandler(AlResultNotFoundException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleAlResultNotFound(AlResultNotFoundException ex) {
+        log.warn("A/L results not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseDto.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleUnreadableJson(HttpMessageNotReadableException ex) {
+        log.warn("Invalid request JSON: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseDto.error("Invalid request body. Please check the submitted fields."));
+    }
+
+    @ExceptionHandler({CannotCreateTransactionException.class, DataAccessResourceFailureException.class})
+    public ResponseEntity<ApiResponseDto<Void>> handleDatabaseUnavailable(Exception ex) {
+        log.error("Database unavailable: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponseDto.error(
+                        "The server cannot reach the database right now. Check that PostgreSQL is running and DB_URL in pathwise-backend/.env is correct, then restart the backend."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

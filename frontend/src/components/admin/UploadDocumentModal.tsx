@@ -18,7 +18,7 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
   const [title, setTitle] = useState('');
   const [source, setSource] = useState<DocumentSource | string>('UGC');
   const [customSource, setCustomSource] = useState('');
-  const [academicYear, setAcademicYear] = useState('2026/27');
+  const [academicYear, setAcademicYear] = useState('2025/26');
   const [type, setType] = useState<DocumentType>('Admissions');
   const [description, setDescription] = useState('');
   
@@ -172,7 +172,7 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
     setTitle('');
     setSource('UGC');
     setCustomSource('');
-    setAcademicYear('2026/27');
+    setAcademicYear('2025/26');
     setType('Admissions');
     setDescription('');
     setError(null);
@@ -324,12 +324,8 @@ export const UploadDocumentModal: FC<UploadDocumentModalProps> = ({
                 onChange={(e) => setAcademicYear(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
               >
-                <option value="2026/27">2026/27</option>
-                <option value="2026">2026</option>
                 <option value="2025/26">2025/26</option>
-                <option value="2025">2025</option>
                 <option value="2024/25">2024/25</option>
-                <option value="2024">2024</option>
               </select>
             </div>
 

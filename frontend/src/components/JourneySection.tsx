@@ -92,9 +92,14 @@ export function JourneySection() {
                 Compare up to 4 courses side by side
               </li>
             </ul>
-            <Link to="/after-al" className="px-6 py-3 bg-teal hover:bg-[#0f766e] text-white font-semibold rounded-xl shadow-md shadow-teal/20 transition-all active:scale-95">
-              Check my eligibility
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link to="/after-al/results" className="px-6 py-3 bg-teal hover:bg-[#0f766e] text-white font-semibold rounded-xl shadow-md shadow-teal/20 transition-all active:scale-95">
+                Check my eligibility (Guest)
+              </Link>
+              <Link to="/after-al/zscore" className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 text-sm">
+                View Z-Score Cutoffs
+              </Link>
+            </div>
           </div>
           <div className="flex-1 w-full">
             {/* Right side mock graphic */}

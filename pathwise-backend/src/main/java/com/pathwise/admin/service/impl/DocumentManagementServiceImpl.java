@@ -13,6 +13,7 @@ import com.pathwise.admin.service.AiTableExtractionService;
 import com.pathwise.admin.service.DocumentManagementService;
 import com.pathwise.admin.service.FileStorageService;
 import com.pathwise.admin.service.PdfExtractionService;
+import com.pathwise.admin.util.HandbookTextProcessor;
 import com.pathwise.course.service.CutoffIngestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,27 +85,11 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
         Document savedDoc = saveDocumentMetadata(initialDoc);
         log.info("Saved initial document metadata with ID: {}", savedDoc.getId());
 
-        // 4. Extract text & run Gemini Vision on table pages (CPU & AI Network I/O - OUTSIDE DB Transaction)
+        // 4. Extract text & detect table pages using fast local PDFBox (0 API quota used on upload)
         List<DocumentPage> pages = new ArrayList<>();
         try {
             pages = pdfExtractionService.extractPages(fileBytes, savedDoc);
-
-            // Automatically run Gemini Vision extraction on pages detected with tables
-            for (DocumentPage page : pages) {
-                if (Boolean.TRUE.equals(page.getHasTables())) {
-                    log.info("Page {} flagged with table. Automatically applying Gemini Vision table extraction...", page.getPageNumber());
-                    try {
-                        String aiTableText = aiTableExtractionService.extractTableDirectly(fileBytes, page.getPageNumber());
-                        if (aiTableText != null && !aiTableText.isBlank()) {
-                            page.setExtractedText(aiTableText);
-                            log.info("Successfully auto-extracted table for page {} using Gemini AI.", page.getPageNumber());
-                        }
-                    } catch (Exception aiEx) {
-                        log.warn("Automatic Gemini extraction skipped for page {}: {}", page.getPageNumber(), aiEx.getMessage());
-                    }
-                }
-            }
-            log.info("Extracted {} pages from PDF.", pages.size());
+            log.info("Extracted {} pages from PDF via PDFBox (AI Table Extraction will be triggered on-demand during review).", pages.size());
         } catch (Exception e) {
             log.warn("Text extraction warning: {}", e.getMessage());
         }
@@ -257,7 +242,8 @@ public class DocumentManagementServiceImpl implements DocumentManagementService 
         DocumentPage page = documentPageRepository.findByDocumentIdAndPageNumber(documentId, pageNumber)
                 .orElseThrow(() -> new RuntimeException(String.format("Page %d not found for document ID %d", pageNumber, documentId)));
 
-        page.setExtractedText(newText != null ? newText : "");
+        String processedText = HandbookTextProcessor.process(newText);
+        page.setExtractedText(processedText.isEmpty() ? "[Blank or Scanned Image Page - No Extractable Text]" : processedText);
         DocumentPage saved = documentPageRepository.save(page);
         log.info("Updated extracted text for document ID: {} page: {}", documentId, pageNumber);
         return DocumentPageResponseDto.fromEntity(saved);

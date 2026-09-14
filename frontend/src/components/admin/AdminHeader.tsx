@@ -46,7 +46,7 @@ export const AdminHeader: FC<AdminHeaderProps> = ({
   const initials = emailDisplay.substring(0, 2).toUpperCase();
 
   return (
-    <header className="bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+    <header className="bg-white border-b border-slate-200/80 px-6 md:px-8 h-[74px] flex items-center justify-between sticky top-0 z-20 flex-shrink-0">
       {/* Title & Mobile Toggle */}
       <div className="flex items-center gap-3">
         {onMenuClick && (

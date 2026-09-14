@@ -455,20 +455,20 @@ export function RegisterPage() {
             </button>
 
             {/* Resend Section */}
-            <div className="mt-6 flex flex-col items-center gap-2 text-xs text-secondary">
+            <div className="mt-6 flex flex-col items-center gap-1.5 text-sm text-secondary">
               <p>Didn't receive the code?</p>
               {canResend ? (
                 <button
                   type="button"
                   onClick={handleResendOtp}
-                  className="text-deep-blue font-semibold hover:underline flex items-center gap-1.5"
+                  className="text-deep-blue font-semibold hover:underline flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <RotateCcw size={13} />
+                  <RotateCcw size={14} />
                   Resend Code
                 </button>
               ) : (
-                <span className="text-slate-400 font-mono">
-                  Resend code in <strong className="text-slate-600">{countdown}s</strong>
+                <span className="text-slate-500 font-normal">
+                  Resend code in <strong className="text-text-main font-semibold">{countdown}s</strong>
                 </span>
               )}
             </div>

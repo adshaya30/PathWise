@@ -178,7 +178,9 @@ export function OtpVerificationPage() {
               <RotateCcw size={14} /> Resend code
             </button>
           ) : (
-            <span className="text-slate-400 font-medium">Resend in {countdown}s</span>
+            <span className="text-slate-500 font-normal">
+              Resend in <strong className="text-text-main font-semibold">{countdown}s</strong>
+            </span>
           )}
         </div>
       </div>

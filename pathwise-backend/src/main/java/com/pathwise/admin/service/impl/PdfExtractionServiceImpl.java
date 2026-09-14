@@ -3,6 +3,7 @@ package com.pathwise.admin.service.impl;
 import com.pathwise.admin.entity.Document;
 import com.pathwise.admin.entity.DocumentPage;
 import com.pathwise.admin.service.PdfExtractionService;
+import com.pathwise.admin.util.HandbookTextProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.RandomAccessReadBuffer;
@@ -108,15 +109,15 @@ public class PdfExtractionServiceImpl implements PdfExtractionService {
     }
 
     /**
-     * Cleans extracted text: normalizes line endings and removes non-printable control characters
+     * Cleans extracted text using the 5 light processing steps:
+     * 1. Normalize Line Endings
+     * 2. Remove Extra Whitespace
+     * 3. Convert Multiple Newlines to Single Space
+     * 4. Remove Non-Printable Characters
+     * 5. Trim
      */
     private String cleanExtractedText(String text) {
-        if (text == null) return "";
-        return text
-                .replace("\r\n", "\n")
-                .replace("\r", "\n")
-                .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "") // Remove non-printable control characters
-                .trim();
+        return HandbookTextProcessor.process(text);
     }
 
     // Patterns for UGC-specific table detection

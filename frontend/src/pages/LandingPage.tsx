@@ -1,6 +1,7 @@
 import { Header } from '../components/Header';
 import { JourneySection } from '../components/JourneySection';
 import { AISection } from '../components/AISection';
+import { UgcCutoffExplorerSection } from '../components/UgcCutoffExplorerSection';
 import { Link } from 'react-router-dom';
 
 export function LandingPage() {
@@ -27,11 +28,11 @@ export function LandingPage() {
             PathWise helps Sri Lankan students explore A/L choices, understand future education pathways, and discover university opportunities — based on verified official information, not guesswork.
           </p>
 
-          <div className="flex flex-wrap justify-center items-center gap-4 mb-4">
-            <Link to="/after-ol" className="px-6 py-3.5 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-lg transition-colors shadow-sm text-lg">
+          <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
+            <Link to="/after-ol" className="px-6 py-3.5 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md text-lg active:scale-95">
               I'm Choosing A/L Subjects
             </Link>
-            <Link to="/after-al" className="px-6 py-3.5 bg-transparent border border-teal text-teal hover:bg-teal/5 font-semibold rounded-lg transition-colors text-lg">
+            <Link to="/after-al/results" className="px-6 py-3.5 bg-teal hover:bg-[#0f766e] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md text-lg active:scale-95">
               I Received My A/L Results
             </Link>
           </div>
@@ -56,6 +57,9 @@ export function LandingPage() {
             <div className="px-6 py-2.5 bg-gradient-to-r from-deep-blue to-teal text-card-bg font-bold rounded-full shadow-md mt-2 md:mt-0">Compare PATHWISE</div>
           </div>
         </section>
+
+        {/* UGC Cut-Off Marks Explorer Section */}
+        <UgcCutoffExplorerSection />
 
         <JourneySection />
 

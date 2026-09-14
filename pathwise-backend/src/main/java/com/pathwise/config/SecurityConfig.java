@@ -54,10 +54,13 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // Public auth and eligibility endpoints
+                // Public auth, eligibility, and after-al endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/eligibility/**").permitAll()
+                .requestMatchers("/api/after-al/**").permitAll()
+                .requestMatchers("/api/chat/**").permitAll()
+                .requestMatchers("/api/saved-courses/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Admin specific endpoints
@@ -75,8 +78,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:4173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Content-Disposition", "Set-Cookie"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "X-Anonymous-Id", "x-anonymous-id"));
+        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Content-Disposition", "Set-Cookie", "X-Anonymous-Id", "x-anonymous-id"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

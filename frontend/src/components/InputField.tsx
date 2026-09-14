@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+  label?: string;
   icon?: React.ReactNode;
   error?: string | null;
   showPasswordToggle?: boolean;
@@ -25,9 +25,11 @@ export function InputField({
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <label className="text-sm font-semibold text-text-main">
-        {label}
-      </label>
+      {label && (
+        <label className="text-sm font-semibold text-text-main">
+          {label}
+        </label>
+      )}
       
       <div className="relative flex items-center">
         {icon && (

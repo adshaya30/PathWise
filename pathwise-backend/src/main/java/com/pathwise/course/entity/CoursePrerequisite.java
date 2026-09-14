@@ -35,16 +35,13 @@ public class CoursePrerequisite {
     private String stream; // Biological Science, Physical Science, Commerce, Arts, Technology
 
     /**
-     * Comma-separated or JSON list of required subjects.
-     * E.g. "Biology, Chemistry, Physics" or "Combined Mathematics, Physics, Chemistry"
+     * Comma-separated list of required subjects with each subject's own minimum grade
+     * inline, e.g. "Chemistry (C), Physics (B), Biology".
+     * A subject without an explicit grade is written plain (e.g. "Biology") when the
+     * handbook states no specific grade for it.
      */
     @Column(name = "required_subjects", nullable = false, columnDefinition = "TEXT")
     private String requiredSubjects;
-
-    /** Minimum required grade for individual subjects, e.g. "S" (Simple Pass) or "C" (Credit) */
-    @Column(name = "minimum_grade", length = 10)
-    @Builder.Default
-    private String minimumGrade = "S";
 
     /** Alternative subjects allowed (e.g. "Information & Communication Technology (ICT) in place of Chemistry") */
     @Column(name = "alternative_subjects", columnDefinition = "TEXT")

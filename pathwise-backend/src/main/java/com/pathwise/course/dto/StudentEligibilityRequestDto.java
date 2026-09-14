@@ -34,6 +34,13 @@ public class StudentEligibilityRequestDto {
     /** Optional target academic year, e.g. "2025/26" */
     private String academicYear;
 
+    /** G.C.E. (O/L) grades used for course-specific O/L requirement checks */
+    private String olEnglish;
+    private String olMathematics;
+    private String olScience;
+    /** Sinhala or Tamil language grade at O/L */
+    private String olLanguage;
+
     @Data
     @Builder
     @NoArgsConstructor

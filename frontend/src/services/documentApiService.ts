@@ -145,7 +145,14 @@ export const documentApiService = {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update status: ${response.statusText}`);
+      let errorMsg = response.statusText;
+      try {
+        const errorJson = await response.json();
+        errorMsg = errorJson.message || errorJson.error || response.statusText;
+      } catch {
+        // use fallback statusText
+      }
+      throw new Error(errorMsg || `Failed with HTTP ${response.status}`);
     }
     const doc = await response.json();
     return {

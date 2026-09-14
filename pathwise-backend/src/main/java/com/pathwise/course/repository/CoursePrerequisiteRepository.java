@@ -14,5 +14,7 @@ public interface CoursePrerequisiteRepository extends JpaRepository<CoursePrereq
 
     Optional<CoursePrerequisite> findByCourseNameIgnoreCase(String courseName);
 
+    Optional<CoursePrerequisite> findByCourseNameIgnoreCaseAndStreamIgnoreCase(String courseName, String stream);
+
     List<CoursePrerequisite> findByCourseNameContainingIgnoreCase(String courseName);
 }

@@ -6,6 +6,7 @@ import com.pathwise.admin.dto.DocumentStatusUpdateRequestDto;
 import com.pathwise.admin.dto.DocumentUploadRequestDto;
 import com.pathwise.admin.entity.enums.DocumentStatus;
 import com.pathwise.admin.service.DocumentManagementService;
+import com.pathwise.course.service.CoursePrerequisiteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,9 @@ public class AdminDocumentController {
 
     private final DocumentManagementService documentManagementService;
     private final com.pathwise.admin.service.AiTableExtractionService aiTableExtractionService;
+    private final com.pathwise.admin.repository.DocumentRepository documentRepository;
+    private final com.pathwise.admin.repository.DocumentPageRepository documentPageRepository;
+    private final CoursePrerequisiteService coursePrerequisiteService;
 
     /**
      * AI-Powered Table / Cutoff Mark Extraction on a specific PDF page
@@ -52,6 +56,27 @@ public class AdminDocumentController {
     ) {
         log.info("Request received to bulk AI auto-extract tables for Document ID: {} (maxPages: {})", id, maxPages);
         return ResponseEntity.ok(aiTableExtractionService.extractAllTablesWithAi(id, maxPages));
+    }
+
+    /**
+     * Re-run A/L prerequisite extraction for an approved handbook (regex parser first,
+     * AI-direct structured extraction fallback). Use this to backfill courses that were
+     * ingested before the AI fallback existed.
+     */
+    @PostMapping("/{id}/reprocess-prerequisites")
+    public ResponseEntity<Map<String, Object>> reprocessPrerequisites(@PathVariable Long id) {
+        com.pathwise.admin.entity.Document doc = documentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found with ID: " + id));
+        doc.setPages(documentPageRepository.findByDocumentIdOrderByPageNumberAsc(id));
+
+        int ingested = coursePrerequisiteService.promoteHandbookPrerequisites(doc);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "documentId", id,
+                "ingested", ingested,
+                "message", ingested + " A/L prerequisite rows ingested."
+        ));
     }
 
     /**

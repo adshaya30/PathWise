@@ -2,6 +2,7 @@ package com.pathwise.course.service.impl;
 
 import com.pathwise.admin.entity.Document;
 import com.pathwise.admin.entity.DocumentPage;
+import com.pathwise.admin.repository.DocumentPageRepository;
 import com.pathwise.course.entity.SpecialCategoryAdmissionQuota;
 import com.pathwise.course.entity.UniversityMediumOfInstruction;
 import com.pathwise.course.repository.SpecialAdmissionQuotaRepository;
@@ -26,24 +27,34 @@ public class SpecialQuotaAndMediumServiceImpl implements SpecialQuotaAndMediumSe
 
     private final UniversityMediumRepository universityMediumRepository;
     private final SpecialAdmissionQuotaRepository specialAdmissionQuotaRepository;
+    private final DocumentPageRepository documentPageRepository;
 
     private static final Pattern NUMERIC_PATTERN = Pattern.compile("\\b\\d+\\b");
 
     @Override
     @Transactional
     public int promoteMediumsAndSpecialQuotas(Document document) {
-        if (document == null || document.getPages() == null || document.getPages().isEmpty()) {
+        if (document == null || document.getId() == null) {
+            return 0;
+        }
+
+        List<DocumentPage> pages = (document.getPages() != null && !document.getPages().isEmpty())
+                ? document.getPages()
+                : documentPageRepository.findByDocumentIdOrderByPageNumberAsc(document.getId());
+
+        if (pages == null || pages.isEmpty()) {
+            log.warn("No pages found for Document ID: {}", document.getId());
             return 0;
         }
 
         String academicYear = document.getAcademicYear() != null ? document.getAcademicYear().trim() : "2025/2026";
-        log.info("Processing Mediums and Special Quotas from Document ID: {} '{}' ({})",
-                document.getId(), document.getTitle(), academicYear);
+        log.info("Processing Mediums and Special Quotas from Document ID: {} '{}' ({}) across {} pages",
+                document.getId(), document.getTitle(), academicYear, pages.size());
 
         List<UniversityMediumOfInstruction> mediums = new ArrayList<>();
         List<SpecialCategoryAdmissionQuota> specialQuotas = new ArrayList<>();
 
-        for (DocumentPage page : document.getPages()) {
+        for (DocumentPage page : pages) {
             if (page.getExtractedText() == null || page.getExtractedText().isBlank()) {
                 continue;
             }

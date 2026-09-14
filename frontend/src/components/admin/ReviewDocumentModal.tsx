@@ -117,25 +117,116 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
     const headers = tableLines[0];
     const rows = tableLines.slice(1);
 
-    // Auto-classify table category based on header keywords
+    // Auto-classify table category based on full table content & header keywords
+    const contentStr = text.toLowerCase();
     const headerStr = headers.join(' ').toLowerCase();
-    let category = 'General Table';
-    if (headerStr.includes('sin. lang') || headerStr.includes('eng.') || (headerStr.includes('mat.') && headerStr.includes('sci.')) || headerStr.includes('ordinary level')) {
-      category = 'G.C.E. (O/L) Requirements Table';
-    } else if (headerStr.includes('aptitude') || headerStr.includes('practical test')) {
+    let category = 'UGC Handbook Structured Table';
+
+    const hasDistrictHeaderOrRows =
+      headerStr.includes('district') ||
+      (contentStr.includes('colombo') && contentStr.includes('gampaha') && contentStr.includes('kalutara') && (contentStr.includes('kandy') || contentStr.includes('galle') || contentStr.includes('jaffna')));
+    const hasCutoffHeaderOrKeywords =
+      contentStr.includes('minimum z-score') ||
+      contentStr.includes("minimum 'z' - score") ||
+      contentStr.includes("minimum 'z' score") ||
+      contentStr.includes('cutoff mark') ||
+      contentStr.includes('cut-off mark') ||
+      contentStr.includes('minimum marks for university admission') ||
+      headerStr.includes('z-score') ||
+      headerStr.includes('cutoff');
+
+    // 7. Aptitude & Practical Test Requirements (Check first so introductory sentence mentioning 'cut-off mark' doesn't misclassify it)
+    if (
+      contentStr.includes('requirement to pass the practical') ||
+      contentStr.includes('aptitude test') ||
+      contentStr.includes('practical test') ||
+      contentStr.includes('practical/ aptitude test') ||
+      headerStr.includes('aptitude')
+    ) {
       category = 'Aptitude & Practical Test Requirements';
-    } else if (headerStr.includes('uni - code') || headerStr.includes('uni-code') || headerStr.includes('unicode')) {
-      category = 'Uni-Codes Assigned Table';
-    } else if (headerStr.includes('intake') || headerStr.includes('places available')) {
-      category = 'Places Available (Proposed Intake)';
-    } else if (headerStr.includes('medium of instruction') || headerStr.includes('medium')) {
-      category = 'Medium of Instruction Table';
-    } else if (headerStr.includes('differently abled') || headerStr.includes('blind') || headerStr.includes('special')) {
-      category = 'Special Categories & Quotas';
-    } else if (headerStr.includes('prerequisite') || headerStr.includes('stream') || headerStr.includes('subject') || headerStr.includes('condition')) {
-      category = 'Course Prerequisites & Requirements';
-    } else if (headerStr.includes('cutoff') || headerStr.includes('z-score') || headerStr.includes('district')) {
+    }
+    // 8. Cutoff Marks Matrix (Strict Cutoff check - requires district columns or decimal Z-scores)
+    else if (
+      (hasDistrictHeaderOrRows && (hasCutoffHeaderOrKeywords || contentStr.includes('0.') || contentStr.includes('1.') || contentStr.includes('2.'))) ||
+      (hasCutoffHeaderOrKeywords && (contentStr.includes('colombo') || contentStr.includes('gampaha') || headerStr.includes('z-score') || headerStr.includes('cutoff')))
+    ) {
       category = 'Cutoff Marks Matrix';
+    }
+    // 2. Distribution of Places (Annex B - University-Wise Intake)
+    else if (
+      !hasDistrictHeaderOrRows &&
+      (contentStr.includes('distribution of the total number of places') ||
+        contentStr.includes('distribution of places') ||
+        contentStr.includes('annex (b)') ||
+        contentStr.includes('annex b') ||
+        (headerStr.includes('university') && (headerStr.includes('intake') || headerStr.includes('places') || headerStr.includes('proposed') || headerStr.includes('no.'))) ||
+        ((contentStr.includes('medicine') || contentStr.includes('biological science')) && contentStr.includes('university of colombo') && (contentStr.includes('224') || contentStr.includes('155') || contentStr.includes('proposed') || contentStr.includes('places') || contentStr.includes('intake'))))
+    ) {
+      category = 'Distribution of Places (Annex B / University-Wise Intake)';
+    }
+    // 1. Places Available (Annex A - Total Proposed Intake per Course)
+    else if (
+      !hasDistrictHeaderOrRows &&
+      (contentStr.includes('places available for admission') ||
+        contentStr.includes('proposed intake') ||
+        contentStr.includes('annex (a)') ||
+        contentStr.includes('annex a') ||
+        contentStr.includes('total proposed intake') ||
+        contentStr.includes('total intake') ||
+        (headerStr.includes('course') && (headerStr.includes('intake') || headerStr.includes('places') || headerStr.includes('proposed'))) ||
+        (headerStr.includes('code') && headerStr.includes('course') && headerStr.includes('intake')))
+    ) {
+      category = 'Places Available (Proposed Intake / Annex A)';
+    }
+    // 6. G.C.E. (O/L) Requirements
+    else if (
+      contentStr.includes('ordinary level') ||
+      contentStr.includes('o/l requirement') ||
+      contentStr.includes('g.c.e. (o/l)') ||
+      headerStr.includes('sin. lang') ||
+      headerStr.includes('tam. lang') ||
+      (headerStr.includes('eng.') && headerStr.includes('mat.') && headerStr.includes('sci.')) ||
+      (contentStr.includes('sin. lang') && contentStr.includes('tam. lang'))
+    ) {
+      category = 'G.C.E. (O/L) Requirements Table';
+    }
+    // 5. Special Admission / Differently Abled
+    else if (
+      contentStr.includes('differently abled') ||
+      contentStr.includes('blind (braille)') ||
+      contentStr.includes('blind') ||
+      contentStr.includes('braille') ||
+      contentStr.includes('special admission') ||
+      contentStr.includes('disabled categories')
+    ) {
+      category = 'Special Categories & Quotas';
+    }
+    // 4. Medium of Instruction
+    else if (
+      contentStr.includes('medium of instruction') ||
+      headerStr.includes('medium of instruction') ||
+      (contentStr.includes('sinhala') && contentStr.includes('tamil') && contentStr.includes('english') && contentStr.includes('medium'))
+    ) {
+      category = 'Medium of Instruction Table';
+    }
+    // 3. Uni-Codes Assigned
+    else if (
+      headerStr.includes('uni - code') ||
+      headerStr.includes('uni-code') ||
+      headerStr.includes('unicode') ||
+      headerStr.includes('uni code') ||
+      contentStr.includes('uni-codes assigned') ||
+      contentStr.includes('uni - codes assigned') ||
+      (headerStr.includes('university') && headerStr.includes('course') && (contentStr.includes('001a') || contentStr.includes('012c') || contentStr.includes('013d')))
+    ) {
+      category = 'Uni-Codes Assigned Table';
+    }
+    else if (
+      contentStr.includes('prerequisite') ||
+      contentStr.includes('stream') ||
+      contentStr.includes('subject')
+    ) {
+      category = 'Course Prerequisites & Requirements';
     }
 
     return { headers, rows, category };

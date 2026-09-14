@@ -2,6 +2,7 @@ package com.pathwise.course.service.impl;
 
 import com.pathwise.admin.entity.Document;
 import com.pathwise.admin.entity.DocumentPage;
+import com.pathwise.admin.repository.DocumentPageRepository;
 import com.pathwise.course.entity.CourseOlRequirement;
 import com.pathwise.course.repository.CourseOlRequirementRepository;
 import com.pathwise.course.service.CourseOlRequirementService;
@@ -21,21 +22,31 @@ import java.util.List;
 public class CourseOlRequirementServiceImpl implements CourseOlRequirementService {
 
     private final CourseOlRequirementRepository courseOlRequirementRepository;
+    private final DocumentPageRepository documentPageRepository;
 
     @Override
     @Transactional
     public int promoteHandbookOlRequirements(Document document) {
-        if (document == null || document.getPages() == null || document.getPages().isEmpty()) {
+        if (document == null || document.getId() == null) {
+            return 0;
+        }
+
+        List<DocumentPage> pages = (document.getPages() != null && !document.getPages().isEmpty())
+                ? document.getPages()
+                : documentPageRepository.findByDocumentIdOrderByPageNumberAsc(document.getId());
+
+        if (pages == null || pages.isEmpty()) {
+            log.warn("No pages found for Document ID: {}", document.getId());
             return 0;
         }
 
         String academicYear = document.getAcademicYear() != null ? document.getAcademicYear().trim() : "2025/2026";
-        log.info("Processing G.C.E. (O/L) Requirements from Document ID: {} '{}' ({})",
-                document.getId(), document.getTitle(), academicYear);
+        log.info("Processing G.C.E. (O/L) Requirements from Document ID: {} '{}' ({}) across {} pages",
+                document.getId(), document.getTitle(), academicYear, pages.size());
 
         List<CourseOlRequirement> olRows = new ArrayList<>();
 
-        for (DocumentPage page : document.getPages()) {
+        for (DocumentPage page : pages) {
             if (page.getExtractedText() == null || page.getExtractedText().isBlank()) {
                 continue;
             }

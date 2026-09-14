@@ -7,8 +7,6 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class LoginRequestDto {
 
     @NotBlank(message = "Email is required")
@@ -18,6 +16,10 @@ public class LoginRequestDto {
     @NotBlank(message = "Password is required")
     private String password;
 
-    @Builder.Default
-    private boolean rememberMe = false;
+    /** Wrapper so JSON null/absent does not fail Jackson 3 primitive deserialization. */
+    private Boolean rememberMe;
+
+    public boolean isRememberMe() {
+        return Boolean.TRUE.equals(rememberMe);
+    }
 }
