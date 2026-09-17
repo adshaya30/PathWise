@@ -267,7 +267,6 @@ export const ZScoreInfoPage: FC = () => {
                           return (
                             <tr
                               key={row.id || `${row.academicYear}-${row.degree}-${row.university}-${idx}`}
-                              className="hover:bg-slate-50/80 transition-colors"
                             >
                               {/* Academic Year */}
                               <td className="py-4 px-6 font-medium text-slate-600 whitespace-nowrap text-xs">

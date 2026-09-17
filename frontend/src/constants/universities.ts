@@ -155,6 +155,25 @@ export const formatUniversityName = (name: string | undefined, fallbackDegree?: 
   return target || 'State University';
 };
 
+export const toTitleCase = (str: string): string => {
+  if (!str) return '';
+  const minorWords = new Set(['and', 'of', 'in', 'for', 'the', 'to', 'on', 'at', 'by', 'with', 'from', 'as']);
+  return str
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, idx) => {
+      const upper = word.toUpperCase();
+      if (['IT', 'AI', 'ICT', 'MBBS', 'BDS', 'BAMS', 'BUMS', 'BSMS', 'BVSC', 'QS', 'BET', 'BICT', 'UGC', 'UOM', 'UOC', 'UOP', 'USJ', 'UOK', 'RUH', 'JFN', 'UCSC'].includes(upper)) {
+        return upper;
+      }
+      if (idx > 0 && minorWords.has(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
+
 /**
  * Helper to ensure degree names are rendered cleanly without attached university suffixes
  */
@@ -167,6 +186,10 @@ export const formatDegreeName = (degree: string | undefined): string => {
     /\s*\([^)]*(?:University|Campus|Institute|School of Computing|Sri Lanka|UOC|UOM|UOP|USJ|UOK|RUH|JFN|SEUSL|EUSL|RUSL|WUSL|SUSL|UWU|OUSL|UVPA|GWUIM|VAV|UCSC)[^)]*\)\s*$/i,
     ''
   );
+
+  if (clean === clean.toUpperCase()) {
+    clean = toTitleCase(clean);
+  }
 
   return clean.trim();
 };

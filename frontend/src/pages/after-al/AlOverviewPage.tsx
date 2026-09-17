@@ -10,9 +10,8 @@ import {
   Calculator,
   Loader2,
   GraduationCap,
-  Info,
-  RotateCcw,
   FileText,
+  BarChart3,
 } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
@@ -196,6 +195,35 @@ export const AlOverviewPage: FC = () => {
     [courses, savedCodes]
   );
 
+  const overviewCourses = useMemo(() => {
+    if (!courses || courses.length === 0) return [];
+    const eligible = courses.filter((c) => c.status === 'Eligible');
+    const needsReview = courses.filter((c) => c.status === 'Needs review');
+    const notEligible = courses.filter((c) => c.status === 'Not eligible');
+
+    const selected: typeof courses = [];
+    if (eligible[0]) selected.push(eligible[0]);
+    if (needsReview[0]) selected.push(needsReview[0]);
+    if (notEligible[0]) selected.push(notEligible[0]);
+
+    for (const c of courses) {
+      if (selected.length >= 3) break;
+      if (!selected.some((s) => s.id === c.id)) {
+        selected.push(c);
+      }
+    }
+
+    return selected;
+  }, [courses]);
+
+  const compareCourse1 = useMemo(() => {
+    return savedItems[0] || courses[0] || null;
+  }, [savedItems, courses]);
+
+  const topUniversities = useMemo(() => {
+    return byUniversity.slice(0, 3);
+  }, [byUniversity]);
+
   return (
     <AfterAlLayout title="Dashboard" subtitle="Your After A/L overview — matched degrees, universities, and eligibility at a glance.">
       <div className="space-y-6">
@@ -338,23 +366,6 @@ export const AlOverviewPage: FC = () => {
                     Last updated: {formatTimeAgo(result?.updatedAt || result?.createdAt)}
                   </div>
                 </div>
-
-                {/* Notice Boxes */}
-                <div className="space-y-2.5 pt-1">
-                  <div className="bg-slate-50/90 border border-slate-200/70 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-slate-600 leading-relaxed">
-                    <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                    <span>
-                      Self-reported results — not verified against Department of Examinations records. Please double check accuracy.
-                    </span>
-                  </div>
-
-                  <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-amber-900 leading-relaxed">
-                    <RotateCcw className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <span>
-                      If you edit any result, your eligibility outcomes will automatically refresh after saving.
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column: Z-Score Snapshot & Saved Courses Cards */}
@@ -384,9 +395,10 @@ export const AlOverviewPage: FC = () => {
                       {topSnapshotCourses.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center justify-between text-sm p-2 -mx-2 rounded-xl"
+                          onClick={() => navigate('/after-al/zscore')}
+                          className="flex items-center justify-between text-sm group cursor-pointer hover:bg-slate-50/80 p-2 -mx-2 rounded-xl transition-all"
                         >
-                          <div className="text-slate-700 font-medium truncate pr-3">
+                          <div className="text-slate-700 font-medium truncate pr-3 group-hover:text-blue-600 transition-colors">
                             <span className="font-semibold">{item.degree}</span>
                             <span className="text-slate-400 mx-1.5">·</span>
                             <span className="text-slate-500 font-medium">{item.uniCode}</span>
@@ -407,10 +419,6 @@ export const AlOverviewPage: FC = () => {
                       No course cutoff data available. Click to view all Z-Score Info.
                     </div>
                   )}
-
-                  <div className="mt-4 p-3.5 bg-slate-50/80 rounded-xl text-slate-500 text-xs leading-relaxed border border-slate-100">
-                    Historical Z-score information is provided for guidance only and does not guarantee future selection.
-                  </div>
                 </div>
 
                 {/* Saved Courses Card */}
@@ -482,60 +490,169 @@ export const AlOverviewPage: FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div
-                onClick={() => navigate('/after-al/eligibility')}
-                className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-6 h-6" />
+            {/* Row 2: Eligibility Overview & Compare Courses Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Eligibility Overview Card */}
+              <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-2xs">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-base md:text-lg font-heading">
+                      Eligibility Overview
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => navigate('/after-al/eligibility')}
+                    className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <span>View all {counts.all}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">
-                  Check Eligibility
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  {counts.eligible} eligible courses matched against official UGC cutoffs for {district}.
-                </p>
-                <div className="mt-4 flex items-center gap-1 text-sm font-bold text-blue-600">
-                  Check Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
+
+                {overviewCourses.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {overviewCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        onClick={() => navigate('/after-al/eligibility')}
+                        className="py-3.5 flex items-start justify-between gap-4 group cursor-pointer hover:bg-slate-50/60 p-2 -mx-2 rounded-xl transition-all"
+                      >
+                        <div className="flex items-start gap-3 min-w-0">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0 mt-1.5"
+                            style={{
+                              backgroundColor:
+                                course.status === 'Eligible'
+                                  ? '#16A34A'
+                                  : course.status === 'Needs review'
+                                  ? '#EAB308'
+                                  : '#DC2626',
+                            }}
+                          />
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="font-semibold text-slate-900 text-sm truncate group-hover:text-blue-600 transition-colors">
+                              {course.courseName} <span className="font-normal text-slate-400">—</span>{' '}
+                              {course.university}
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-1">
+                              {course.explanation}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`shrink-0 text-[11px] font-bold px-3 py-1 rounded-full border ${
+                            course.status === 'Eligible'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                              : course.status === 'Needs review'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200/80'
+                              : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                          }`}
+                        >
+                          {course.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-slate-400 text-xs">
+                    No evaluated courses found.
+                  </div>
+                )}
               </div>
 
-              <div
-                onClick={() => navigate('/after-al/courses')}
-                className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-                  <Building2 className="w-6 h-6" />
+              {/* Compare Courses Card */}
+              <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+                    <BarChart3 className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-base md:text-lg font-heading">
+                    Compare Courses
+                  </h3>
                 </div>
-                <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">
-                  University Courses
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Browse {byUniversity.length} universities offering {counts.all} degree programs for your profile.
-                </p>
-                <div className="mt-4 flex items-center gap-1 text-sm font-bold text-blue-600">
-                  Explore Degrees <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  {/* Slot 1: Active Course */}
+                  <div className="p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl space-y-1">
+                    <div className="font-semibold text-slate-900 text-xs truncate">
+                      {compareCourse1?.courseName || 'Computer Science'}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate">
+                      {compareCourse1?.university || 'University of Colombo'}
+                    </div>
+                  </div>
+
+                  {/* Slot 2: Add a Course */}
+                  <div
+                    onClick={() => navigate('/after-al/compare')}
+                    className="p-3 border border-dashed border-slate-200 rounded-xl flex items-center justify-center text-xs font-semibold text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer bg-slate-50/30"
+                  >
+                    <span>+ Add a course</span>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      compareCourse1 ? `/after-al/compare?courses=${compareCourse1.uniCode}` : '/after-al/compare'
+                    )
+                  }
+                  className="w-full py-2.5 bg-white border border-slate-200 hover:border-blue-400 text-slate-800 font-bold rounded-xl text-xs shadow-2xs hover:bg-blue-50/40 transition-all cursor-pointer"
+                >
+                  Compare now
+                </button>
+              </div>
+            </div>
+
+            {/* Row 3: University Courses Card */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-base md:text-lg font-heading">
+                    University Courses
+                  </h3>
+                </div>
+                <button
+                  onClick={() => navigate('/after-al/courses')}
+                  className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline cursor-pointer"
+                >
+                  <span>Explore all</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
 
-              <div
-                onClick={() => navigate('/after-al/zscore')}
-                className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-6 h-6" />
+              {topUniversities.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {topUniversities.map((uni) => (
+                    <div
+                      key={uni.id}
+                      onClick={() => navigate('/after-al/courses')}
+                      className="p-5 bg-slate-50/60 hover:bg-blue-50/40 border border-slate-200/80 hover:border-blue-200 rounded-2xl text-center space-y-2 cursor-pointer transition-all group"
+                    >
+                      <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold font-mono">
+                        {uni.code}
+                      </div>
+                      <div className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors truncate">
+                        {uni.name}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {uni.eligibleCount} eligible course{uni.eligibleCount !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">
-                  Z-Score Cutoff Trends
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Compare historical district cutoff shifts and intake availability.
-                </p>
-                <div className="mt-4 flex items-center gap-1 text-sm font-bold text-blue-600">
-                  View Trends <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              ) : (
+                <div className="py-6 text-center text-slate-400 text-xs">
+                  No university course data available.
                 </div>
-              </div>
+              )}
             </div>
           </>
         )}

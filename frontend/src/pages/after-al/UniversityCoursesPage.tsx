@@ -7,6 +7,7 @@ import { SavedCourseButton } from '../../components/common/SavedCourseButton';
 import { afterAlApiService } from '../../services/after-al/afterAlApiService';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
 import { buildComparePath, mapApiCoursesToEvaluated, type EvaluatedCourse } from '../../utils/eligibilityUtils';
+import { formatDegreeName, formatUniversityName } from '../../constants/universities';
 
 export const UniversityCoursesPage: FC = () => {
   const navigate = useNavigate();
@@ -220,56 +221,75 @@ export const UniversityCoursesPage: FC = () => {
                 {filteredUniversities.map((uni) => (
                   <div
                     key={uni.id}
-                    className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
+                    className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-4"
                   >
-                    <div className="p-6">
-                      <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-mono font-bold text-[11px] border border-blue-200/60">
-                              {uni.code}
-                            </span>
-                            <h3 className="font-bold text-slate-900 text-base">{uni.name}</h3>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-1">{uni.location}, Sri Lanka</p>
+                    <div>
+                      {/* Top Header */}
+                      <div>
+                        <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs">
+                          {uni.code}
                         </div>
-                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60 shrink-0">
-                          {uni.eligibleCount} Eligible
-                        </span>
+                        <h3 className="font-bold text-slate-900 text-lg font-heading tracking-tight mt-2.5">
+                          {formatUniversityName(uni.name)}
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {uni.location} · {uni.eligibleCount} eligible course{uni.eligibleCount !== 1 ? 's' : ''}
+                        </p>
                       </div>
 
-                      <div className="mt-4 space-y-2.5">
+                      {/* Course List */}
+                      <div className="mt-5 space-y-3.5">
                         {uni.courses.slice(0, expandedUniId === uni.id ? undefined : 3).map((course) => (
                           <div
                             key={course.id}
                             onClick={() => void openCourseDetail(course, uni.name)}
-                            className="p-3 rounded-2xl bg-slate-50/70 hover:bg-slate-100/70 border border-slate-100 flex items-center justify-between gap-3 transition-colors cursor-pointer group"
+                            className="flex items-center justify-between gap-3 group cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 py-1 rounded-xl transition-colors"
                           >
-                            <div className="min-w-0">
-                              <div className="font-bold text-slate-800 text-xs truncate group-hover:text-blue-600 transition-colors">
-                                {course.courseName}
-                              </div>
-                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                                Cutoff Z-Score: <strong className="text-slate-700">{course.cutoff.toFixed(4)}</strong>
-                              </div>
-                            </div>
+                            <span className="font-semibold text-slate-800 text-sm truncate group-hover:text-blue-600 transition-colors">
+                              {formatDegreeName(course.courseName)}
+                            </span>
                             <div className="flex items-center gap-2 shrink-0">
-                              <EligibilityBadge status={course.status} size="sm" showIcon={true} />
+                              {course.status === 'Eligible' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  Eligible
+                                </span>
+                              )}
+                              {course.status === 'Needs review' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                  Needs review
+                                </span>
+                              )}
+                              {course.status === 'Not eligible' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                                  Not eligible
+                                </span>
+                              )}
                               <SavedCourseButton uniCode={course.uniCode} size="sm" />
                             </div>
                           </div>
                         ))}
                       </div>
+                    </div>
 
-                      {uni.courses.length > 3 && (
-                        <button
-                          type="button"
-                          onClick={() => setExpandedUniId(expandedUniId === uni.id ? null : uni.id)}
-                          className="mt-3 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
-                        >
-                          {expandedUniId === uni.id ? 'Show Less' : `+ Show ${uni.courses.length - 3} More Courses`}
-                        </button>
-                      )}
+                    {/* Footer */}
+                    <div className="pt-4 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedUniId(expandedUniId === uni.id ? null : uni.id)}
+                        className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 cursor-pointer group"
+                      >
+                        <span>
+                          {expandedUniId === uni.id
+                            ? 'Show fewer courses'
+                            : uni.courses.length > 3
+                            ? `View all ${uni.courses.length} courses`
+                            : 'View all courses'}
+                        </span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
                     </div>
                   </div>
                 ))}

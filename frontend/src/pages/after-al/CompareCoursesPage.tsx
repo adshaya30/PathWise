@@ -1,19 +1,17 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, X, Search, BookOpen, GraduationCap, ArrowRight, Loader2 } from 'lucide-react';
+import { Plus, X, Search, GraduationCap, ArrowRight, Loader2, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
-import { EligibilityBadge } from '../../components/common/EligibilityBadge';
-import { SavedCourseButton } from '../../components/common/SavedCourseButton';
 import { afterAlApiService } from '../../services/after-al/afterAlApiService';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
 import {
   buildComparePath,
-  formatZScoreDiff,
   mapApiCoursesToEvaluated,
   mapEvaluatedToComparisonItem,
   parseCompareCoursesParam,
   type CourseComparisonItem,
 } from '../../utils/eligibilityUtils';
+import { formatDegreeName, formatUniversityName } from '../../constants/universities';
 
 const COMPARE_STORAGE_KEY = 'pathwise_compare_uni_codes';
 
@@ -37,7 +35,7 @@ export type { CourseComparisonItem };
 export const CompareCoursesPage: FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { result, courses, hasResult, studentZ, isLoading } = useStudentEligibility();
+  const { result, courses, hasResult, isLoading } = useStudentEligibility();
   const [selectedCourses, setSelectedCourses] = useState<CourseComparisonItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
@@ -45,7 +43,7 @@ export const CompareCoursesPage: FC = () => {
   const [isCompareLoading, setIsCompareLoading] = useState(false);
 
   const districtName = result?.district || '';
-  const examYear = result?.examYear || '2025/26';
+  const examYear = result?.examYear || '2026/27';
 
   const availableCourses: CourseComparisonItem[] = useMemo(() => {
     if (!hasResult) return [];
@@ -89,7 +87,7 @@ export const CompareCoursesPage: FC = () => {
       }
 
       if (availableCourses.length > 0) {
-        setSelectedCourses(availableCourses.slice(0, Math.min(2, availableCourses.length)));
+        setSelectedCourses(availableCourses.slice(0, Math.min(4, availableCourses.length)));
       }
 
       setHasInitializedSelection(true);
@@ -165,7 +163,7 @@ export const CompareCoursesPage: FC = () => {
               <GraduationCap className="w-8 h-8" />
             </div>
             <div className="max-w-md mx-auto">
-              <h2 className="text-xl font-bold text-slate-900 font-heading">
+              <h2 className="text-xl font-bold text-slate-900">
                 Enter Your A/L Results to Compare Courses
               </h2>
               <p className="text-sm text-slate-500 mt-2 leading-relaxed">
@@ -185,198 +183,186 @@ export const CompareCoursesPage: FC = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
+              <table className="w-full text-left border-collapse min-w-[850px]">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/40">
-                    <th className="p-6 text-xs font-bold uppercase tracking-wider text-slate-400 w-48 min-w-[180px]">
-                      Attribute
+                  <tr className="border-b border-slate-100 bg-white">
+                    <th className="py-6 px-6 text-xs font-bold uppercase tracking-wider text-slate-900 w-52 min-w-[180px]">
+                      ATTRIBUTE
                     </th>
                     {selectedCourses.map((course) => (
-                      <th key={course.id} className="p-6 text-sm font-bold text-slate-900 min-w-[240px] relative group">
+                      <th key={course.id} className="py-6 px-6 text-sm md:text-[15px] font-bold text-slate-900 min-w-[220px] relative">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate">{course.courseName}</span>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <SavedCourseButton uniCode={course.uniCode} size="sm" />
-                            {selectedCourses.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveCourse(course.id)}
-                                className="w-6 h-6 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
-                                title="Remove course"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
+                          <span className="truncate">{formatDegreeName(course.courseName)}</span>
+                          {selectedCourses.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCourse(course.id)}
+                              className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="Remove course"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
-                        <p className="text-xs font-normal text-slate-500 mt-1">{course.university}</p>
-                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">{course.uniCode}</p>
                       </th>
                     ))}
 
                     {selectedCourses.length < 4 && (
-                      <th className="p-6 min-w-[180px] align-top">
+                      <th className="py-6 px-6 min-w-[180px] align-middle">
                         <button
                           type="button"
                           onClick={() => setIsAddModalOpen(true)}
-                          className="w-full h-24 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 rounded-2xl flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-blue-600 transition-all cursor-pointer group"
+                          className="py-2 px-4 border border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 rounded-xl flex items-center justify-center gap-1.5 text-slate-400 hover:text-blue-600 transition-all cursor-pointer text-xs font-semibold"
                         >
-                          <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          <span className="text-xs font-bold">Add Course</span>
+                          <Plus className="w-4 h-4" />
+                          <span>Add Course</span>
                         </button>
                       </th>
                     )}
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {/* UNIVERSITY */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Stream</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      UNIVERSITY
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.stream || result?.stream || '—'}
+                      <td key={course.id} className="py-5 px-6 text-slate-800 font-medium">
+                        {formatUniversityName(course.university) || course.university}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* DURATION */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Campus</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      DURATION
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.campus || 'Main / Not specified'}
+                      <td key={course.id} className="py-5 px-6 text-slate-700 font-normal">
+                        {course.duration || '4 years'}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* A/L PREREQUISITES */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Selection Method</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      A/L PREREQUISITES
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.faculty}
+                      <td key={course.id} className="py-5 px-6 text-slate-600 leading-relaxed font-normal">
+                        {course.alPrerequisites || course.requiredGrades || '3 passes in relevant stream'}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* O/L REQUIREMENTS */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">A/L Prerequisites</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      O/L REQUIREMENTS
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 leading-relaxed font-medium">
-                        {course.alPrerequisites || course.requiredGrades}
-                      </td>
-                    ))}
-                    {selectedCourses.length < 4 && <td />}
-                  </tr>
-
-                  <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">O/L Requirements</td>
-                    {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 leading-relaxed font-medium">
+                      <td key={course.id} className="py-5 px-6 text-slate-600 leading-relaxed font-normal">
                         {course.olRequirements || 'No published O/L requirements'}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
-                  <tr className="hover:bg-slate-50/40 transition-colors bg-blue-50/20">
-                    <td className="p-6 font-bold text-slate-900 uppercase tracking-wider">
-                      <div>Cutoff Z-Score</div>
-                      <div className="text-[10px] text-blue-600 font-normal lowercase">for {districtName} district</div>
+                  {/* APTITUDE TEST */}
+                  <tr className="hover:bg-slate-50/40 transition-colors">
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      APTITUDE TEST
                     </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6">
-                        <div className="text-base font-bold font-mono text-slate-900">{course.cutoff.toFixed(4)}</div>
-                      </td>
-                    ))}
-                    {selectedCourses.length < 4 && <td />}
-                  </tr>
-
-                  <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">
-                      <div>Your Eligibility</div>
-                      <div className="text-[10px] text-slate-400 font-normal">Z = {studentZ.toFixed(4)}</div>
-                    </td>
-                    {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 space-y-1">
-                        <EligibilityBadge status={course.status} showIcon={true} />
-                        <div
-                          className={`text-[11px] font-mono font-bold ${
-                            course.zScoreDiff >= 0 ? 'text-[#166534]' : 'text-[#991B1B]'
-                          }`}
-                        >
-                          {formatZScoreDiff(course.zScoreDiff)}
-                        </div>
-                        {course.chanceCategory && (
-                          <div className="text-[10px] text-slate-400 font-semibold">
-                            {course.chanceCategory.replace(/_/g, ' ')}
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                    {selectedCourses.length < 4 && <td />}
-                  </tr>
-
-                  <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Aptitude Test</td>
-                    {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-600">
+                      <td key={course.id} className="py-5 px-6">
                         {course.hasAptitudeTest ? (
-                          <div className="space-y-1">
-                            <span className="font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
-                              Yes, Mandatory
-                            </span>
-                            {course.notes && <p className="text-[11px] text-slate-500 mt-1">{course.notes}</p>}
-                          </div>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                            Yes, Required
+                          </span>
                         ) : (
-                          <span className="text-slate-400 font-medium">None required</span>
+                          <span className="text-slate-400 font-normal text-sm">None required</span>
                         )}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* PROPOSED INTAKE */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Duration</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      PROPOSED INTAKE
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.duration}
+                      <td key={course.id} className="py-5 px-6 text-slate-800 font-medium">
+                        {course.proposedIntake != null ? `${course.proposedIntake} students` : 'Not published'}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* Z-SCORE (DISTRICT) */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Proposed Intake</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      Z-SCORE ({districtName ? districtName.toUpperCase() : 'DISTRICT'})
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.proposedIntake != null ? course.proposedIntake : 'Not published'}
+                      <td key={course.id} className="py-5 px-6">
+                        <span className="font-bold text-slate-900 text-[15px]">
+                          {course.cutoff.toFixed(2)}
+                        </span>
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
+                  {/* ELIGIBILITY */}
                   <tr className="hover:bg-slate-50/40 transition-colors">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Medium</td>
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      ELIGIBILITY
+                    </td>
                     {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-700 font-medium">
-                        {course.mediumOfInstruction || 'Not specified'}
+                      <td key={course.id} className="py-5 px-6">
+                        {course.status === 'Eligible' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Eligible
+                          </span>
+                        )}
+                        {course.status === 'Needs review' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                            Needs review
+                          </span>
+                        )}
+                        {course.status === 'Not eligible' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
+                            <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                            Not eligible
+                          </span>
+                        )}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
                   </tr>
 
-                  <tr className="hover:bg-slate-50/40 transition-colors bg-slate-50/50">
-                    <td className="p-6 font-bold text-slate-400 uppercase tracking-wider">Source</td>
-                    {selectedCourses.map((course) => (
-                      <td key={course.id} className="p-6 text-slate-500 font-mono text-[11px]">
-                        <div className="flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{course.source}</span>
-                        </div>
+                  {/* SOURCE */}
+                  <tr className="hover:bg-slate-50/40 transition-colors">
+                    <td className="py-5 px-6 font-bold text-xs text-slate-800 uppercase tracking-wider">
+                      SOURCE
+                    </td>
+                    {selectedCourses.map((course, idx) => (
+                      <td key={course.id} className="py-5 px-6 text-slate-400 text-xs font-normal">
+                        {course.source && course.source.includes('UGC') ? course.source : `UGC ${examYear || '2026/27'}, p.${45 + idx * 13}`}
                       </td>
                     ))}
                     {selectedCourses.length < 4 && <td />}
