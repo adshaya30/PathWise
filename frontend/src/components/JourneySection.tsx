@@ -38,7 +38,7 @@ export function JourneySection() {
                 Combination & future pathway explorer
               </li>
             </ul>
-            <Link to="/after-ol" className="px-6 py-3 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-95">
+            <Link to="/after-ol" className="px-6 py-3 bg-deep-blue hover:bg-[#153860] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-95">
               Start exploring subjects
             </Link>
           </div>

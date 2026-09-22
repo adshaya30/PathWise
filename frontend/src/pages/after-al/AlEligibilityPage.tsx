@@ -1,7 +1,8 @@
 import { useMemo, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, GraduationCap, ArrowRight, Loader2, Search } from 'lucide-react';
+import { BookOpen, ArrowRight, Search } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
+import { PageLoadingState } from '../../components/common/PageLoadingState';
 import { EligibilityBadge, type EligibilityStatus } from '../../components/common/EligibilityBadge';
 import { SavedCourseButton } from '../../components/common/SavedCourseButton';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
@@ -51,27 +52,13 @@ export const AlEligibilityPage: FC = () => {
       title="Check Eligibility"
       subtitle="Real-time eligibility for the courses matching your A/L results."
     >
-      <div className="max-w-5xl mx-auto space-y-6 pt-2 pb-12">
-        <div className="relative">
-          <Search className="w-4.5 h-4.5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search degrees, universities, subjects..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs"
-          />
-        </div>
-
+      <div className="space-y-6">
         {isLoading ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-16 text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-700">Loading your examination results...</p>
-          </div>
+          <PageLoadingState message="Evaluating your course eligibility..." />
         ) : !hasResult ? (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-10 md:p-14 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
-              <GraduationCap className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-[#1b497d]/20">
+              <img src="/images/after-al-logo.png" alt="PathWise Logo" className="w-16 h-16 rounded-2xl object-cover" />
             </div>
             <div className="max-w-md mx-auto">
               <h2 className="text-xl font-bold text-slate-900 font-heading">
@@ -87,7 +74,7 @@ export const AlEligibilityPage: FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/after-al/results')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
               >
                 <span>Go to My A/L Results</span>
                 <ArrowRight className="w-4 h-4" />
@@ -96,6 +83,17 @@ export const AlEligibilityPage: FC = () => {
           </div>
         ) : (
           <>
+            <div className="relative">
+              <Search className="w-4.5 h-4.5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search degrees, universities, subjects..."
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b497d]/20 focus:border-[#1b497d] transition-all shadow-2xs"
+              />
+            </div>
+
             <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 type="button"
@@ -157,7 +155,7 @@ export const AlEligibilityPage: FC = () => {
                 filteredItems.map((item) => (
                   <div
                     key={item.id}
-                    className="p-6 md:p-7 hover:bg-slate-50/50 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                    className="p-6 md:p-7 hover:bg-slate-50/60 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 group cursor-pointer"
                   >
                     <div className="space-y-1.5 flex-1 min-w-0 pr-2">
                       <div className="flex items-center gap-2.5">
@@ -165,13 +163,13 @@ export const AlEligibilityPage: FC = () => {
                           className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: getDotColor(item.status) }}
                         />
-                        <h3 className="font-bold text-slate-900 text-base leading-snug">
+                        <h3 className="font-extrabold text-slate-900 text-base leading-snug font-heading group-hover:text-[#1b497d] transition-colors">
                           {item.courseName} <span className="font-normal text-slate-400">—</span> {item.university}
                         </h3>
                         <SavedCourseButton uniCode={item.uniCode} size="sm" />
                       </div>
 
-                      <p className="text-slate-600 text-sm pl-5 leading-relaxed">{item.explanation}</p>
+                      <p className="text-slate-600 text-sm pl-5 leading-relaxed font-normal">{item.explanation}</p>
 
                       <div className="pl-5 pt-1 flex flex-wrap gap-2">
                         <span className="inline-flex items-center text-[11px] font-medium bg-slate-100/90 text-slate-600 px-3 py-1 rounded-md border border-slate-200/70 font-mono tracking-tight">

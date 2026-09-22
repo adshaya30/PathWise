@@ -493,13 +493,50 @@ public class EligibilityEngineServiceImpl implements EligibilityEngineService {
         return false;
     }
 
+    private static final Set<String> COURSE_STOPWORDS = Set.of(
+            "AND", "OR", "THE", "OF", "IN", "AT", "WITH", "FOR", "BACHELOR", "MASTER"
+    );
+
+    /**
+     * Compares course names by significant word overlap instead of raw substring
+     * containment, so a generic name like "Medicine" is NOT considered the same
+     * course as "Ayurveda Medicine and Surgery" or "Unani Medicine and Surgery"
+     * (they share only the token MEDICINE = 1/3 overlap and must have their own
+     * cutoff row).
+     */
     private boolean isCourseNameSimilar(String c1, String c2) {
-        if (c1 == null || c2 == null) {
+        if (c1 == null || c2 == null || c1.isBlank() || c2.isBlank()) {
             return false;
         }
-        String n1 = c1.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
-        String n2 = c2.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
-        return n1.contains(n2) || n2.contains(n1);
+        Set<String> t1 = courseNameTokens(c1);
+        Set<String> t2 = courseNameTokens(c2);
+        if (t1.isEmpty() || t2.isEmpty()) {
+            return false;
+        }
+        if (t1.equals(t2)) {
+            return true;
+        }
+
+        Set<String> smaller = t1.size() <= t2.size() ? t1 : t2;
+        Set<String> larger = t1.size() <= t2.size() ? t2 : t1;
+        Set<String> intersection = new HashSet<>(smaller);
+        intersection.retainAll(larger);
+
+        double overlap = (double) intersection.size() / Math.max(t1.size(), t2.size());
+        if (overlap >= 0.5) {
+            return true;
+        }
+        // One full name embedded in the other (e.g. "B.Sc Engineering" vs "Engineering").
+        // Only allowed when the shorter side brings at least two significant tokens, so a
+        // lone generic token never absorbs longer distinct course names.
+        return smaller.size() >= 2 && intersection.size() == smaller.size();
+    }
+
+    private static Set<String> courseNameTokens(String name) {
+        String normalized = name.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9 ]", " ").trim();
+        Set<String> tokens = new HashSet<>(Arrays.asList(normalized.split("\\s+")));
+        tokens.removeAll(COURSE_STOPWORDS);
+        return tokens;
     }
 
     private boolean isUniversityNameSimilar(String u1, String u2) {

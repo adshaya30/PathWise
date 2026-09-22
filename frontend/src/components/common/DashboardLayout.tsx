@@ -7,8 +7,10 @@ import type { NavItem, NavSection } from '../../types/navigation';
 
 export interface DashboardLayoutProps {
   brandTitle?: string;
+  brandLogo?: string;
   portalBadge?: string;
   badgeBgColor?: string;
+  themeColor?: 'blue' | 'teal';
   sections?: NavSection[];
   navItems?: NavItem[];
   bottomNavItems?: NavItem[];
@@ -29,8 +31,10 @@ export interface DashboardLayoutProps {
 
 export const DashboardLayout: FC<DashboardLayoutProps> = ({
   brandTitle = 'PathWise',
+  brandLogo,
   portalBadge = 'Portal',
   badgeBgColor,
+  themeColor = 'blue',
   sections,
   navItems,
   bottomNavItems,
@@ -55,8 +59,10 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({
       {/* Reusable Sidebar */}
       <AppSidebar
         brandTitle={brandTitle}
+        brandLogo={brandLogo}
         portalBadge={portalBadge}
         badgeBgColor={badgeBgColor}
+        themeColor={themeColor}
         sections={sections}
         navItems={navItems}
         bottomNavItems={bottomNavItems}
@@ -74,6 +80,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({
           title={title}
           subtitle={subtitle}
           portalBadge={portalBadge}
+          themeColor={themeColor}
           showSearch={showSearch}
           searchPlaceholder={searchPlaceholder}
           onSearchChange={onSearchChange}
@@ -86,7 +93,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({
       </div>
 
       {/* Floating AI Assistant Chat Widget (if enabled) */}
-      {showAiChat && <FloatingChatWidget />}
+      {showAiChat && <FloatingChatWidget themeColor={themeColor} />}
     </div>
   );
 };

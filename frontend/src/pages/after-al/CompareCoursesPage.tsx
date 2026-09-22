@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, X, Search, GraduationCap, ArrowRight, Loader2, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Plus, X, Search, GraduationCap, ArrowRight, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
+import { PageLoadingState } from '../../components/common/PageLoadingState';
 import { afterAlApiService } from '../../services/after-al/afterAlApiService';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
 import {
@@ -20,14 +21,30 @@ function loadStoredUniCodes(): string[] {
     const raw = localStorage.getItem(COMPARE_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((code): code is string => typeof code === 'string') : [];
+    if (!Array.isArray(parsed)) return [];
+    const filtered = parsed.filter((code): code is string => typeof code === 'string' && Boolean(code.trim()));
+    return Array.from(new Set(filtered)).slice(0, 4);
   } catch {
     return [];
   }
 }
 
 function saveStoredUniCodes(codes: string[]): void {
-  localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(codes.slice(0, 4)));
+  const unique = Array.from(new Set(codes.filter(Boolean))).slice(0, 4);
+  localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(unique));
+}
+
+function deduplicateCourses(courses: CourseComparisonItem[]): CourseComparisonItem[] {
+  const seen = new Set<string>();
+  const result: CourseComparisonItem[] = [];
+  for (const course of courses) {
+    const key = (course.uniCode || `${course.courseName}|${course.university}`).trim().toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(course);
+    }
+  }
+  return result.slice(0, 4);
 }
 
 export type { CourseComparisonItem };
@@ -47,23 +64,31 @@ export const CompareCoursesPage: FC = () => {
 
   const availableCourses: CourseComparisonItem[] = useMemo(() => {
     if (!hasResult) return [];
-    return courses.map((course) => mapEvaluatedToComparisonItem(course, examYear));
+    const mapped = courses.map((course) => mapEvaluatedToComparisonItem(course, examYear));
+    return deduplicateCourses(mapped);
   }, [courses, examYear, hasResult]);
 
   const loadCoursesByUniCodes = async (uniCodes: string[]): Promise<CourseComparisonItem[]> => {
-    if (!result || uniCodes.length === 0) return [];
+    const uniqueCodes = Array.from(new Set(uniCodes.filter(Boolean))).slice(0, 4);
+    if (!result || uniqueCodes.length === 0) return [];
 
     try {
       setIsCompareLoading(true);
-      const compareResponse = await afterAlApiService.compareCourses(uniCodes);
-      return mapApiCoursesToEvaluated(compareResponse.courses ?? [], result).map((course) =>
+      const compareResponse = await afterAlApiService.compareCourses(uniqueCodes);
+      const mapped = mapApiCoursesToEvaluated(compareResponse.courses ?? [], result).map((course) =>
         mapEvaluatedToComparisonItem(course, examYear)
       );
+      return deduplicateCourses(mapped);
     } catch (compareError) {
       console.warn('Compare API unavailable, falling back to local course list:', compareError);
-      return uniCodes
-        .map((code) => availableCourses.find((c) => c.uniCode.toLowerCase() === code.toLowerCase()))
-        .filter((c): c is CourseComparisonItem => c !== undefined);
+      const matched: CourseComparisonItem[] = [];
+      for (const code of uniqueCodes) {
+        const found = availableCourses.find((c) => c.uniCode.toLowerCase() === code.toLowerCase());
+        if (found) {
+          matched.push(found);
+        }
+      }
+      return deduplicateCourses(matched);
     } finally {
       setIsCompareLoading(false);
     }
@@ -75,19 +100,19 @@ export const CompareCoursesPage: FC = () => {
     const initializeSelection = async () => {
       const urlCodes = parseCompareCoursesParam(searchParams.get('courses'));
       const storedUniCodes = loadStoredUniCodes();
-      const preferredCodes = urlCodes.length > 0 ? urlCodes : storedUniCodes;
+      const preferredCodes = Array.from(new Set((urlCodes.length > 0 ? urlCodes : storedUniCodes).filter(Boolean))).slice(0, 4);
 
       if (preferredCodes.length > 0) {
         const compared = await loadCoursesByUniCodes(preferredCodes);
         if (compared.length > 0) {
-          setSelectedCourses(compared);
+          setSelectedCourses(deduplicateCourses(compared));
           setHasInitializedSelection(true);
           return;
         }
       }
 
       if (availableCourses.length > 0) {
-        setSelectedCourses(availableCourses.slice(0, Math.min(4, availableCourses.length)));
+        setSelectedCourses(availableCourses.slice(0, 4));
       }
 
       setHasInitializedSelection(true);
@@ -100,7 +125,7 @@ export const CompareCoursesPage: FC = () => {
   useEffect(() => {
     if (!hasInitializedSelection) return;
 
-    const codes = selectedCourses.map((c) => c.uniCode).filter(Boolean);
+    const codes = Array.from(new Set(selectedCourses.map((c) => c.uniCode).filter(Boolean))).slice(0, 4);
     saveStoredUniCodes(codes);
 
     const next = codes.length > 0 ? buildComparePath(codes).replace('/after-al/compare', '') : '';
@@ -120,31 +145,43 @@ export const CompareCoursesPage: FC = () => {
 
   const handleAddCourse = async (course: CourseComparisonItem) => {
     if (selectedCourses.length >= 4) return;
-    if (selectedCourses.some((c) => c.id === course.id || c.uniCode === course.uniCode)) return;
+    const courseKey = (course.uniCode || `${course.courseName}|${course.university}`).trim().toLowerCase();
+    const isAlreadySelected = selectedCourses.some(
+      (c) => (c.uniCode || `${c.courseName}|${c.university}`).trim().toLowerCase() === courseKey || c.id === course.id
+    );
+    if (isAlreadySelected) return;
 
     if (course.uniCode && !course.uniCode.startsWith('UGC-')) {
       const enriched = await loadCoursesByUniCodes([course.uniCode]);
       if (enriched[0]) {
-        setSelectedCourses((prev) => [...prev, enriched[0]]);
+        setSelectedCourses((prev) => deduplicateCourses([...prev, enriched[0]]));
         setIsAddModalOpen(false);
         setCourseSearchQuery('');
         return;
       }
     }
 
-    setSelectedCourses((prev) => [...prev, course]);
+    setSelectedCourses((prev) => deduplicateCourses([...prev, course]));
     setIsAddModalOpen(false);
     setCourseSearchQuery('');
   };
 
-  const unselectedCourses = availableCourses.filter(
-    (c) =>
-      !selectedCourses.some((sel) => sel.id === c.id || sel.uniCode === c.uniCode) &&
-      (!courseSearchQuery ||
-        c.courseName.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-        c.university.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-        c.uniCode.toLowerCase().includes(courseSearchQuery.toLowerCase()))
-  );
+  const unselectedCourses = useMemo(() => {
+    const selectedKeys = new Set(
+      selectedCourses.map((c) => (c.uniCode || `${c.courseName}|${c.university}`).trim().toLowerCase())
+    );
+    return availableCourses.filter((c) => {
+      const key = (c.uniCode || `${c.courseName}|${c.university}`).trim().toLowerCase();
+      if (selectedKeys.has(key)) return false;
+      if (!courseSearchQuery) return true;
+      const q = courseSearchQuery.toLowerCase();
+      return (
+        c.courseName.toLowerCase().includes(q) ||
+        c.university.toLowerCase().includes(q) ||
+        c.uniCode.toLowerCase().includes(q)
+      );
+    });
+  }, [availableCourses, selectedCourses, courseSearchQuery]);
 
   return (
     <AfterAlLayout
@@ -153,17 +190,14 @@ export const CompareCoursesPage: FC = () => {
     >
       <div className="space-y-6">
         {isLoading || (hasResult && !hasInitializedSelection) || isCompareLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <span className="text-sm font-medium">Loading courses for comparison...</span>
-          </div>
+          <PageLoadingState message="Loading courses for comparison..." />
         ) : !hasResult ? (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-10 md:p-14 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-16 h-16 rounded-3xl bg-[#e8edf4] text-[#1b497d] flex items-center justify-center mx-auto shadow-inner">
               <GraduationCap className="w-8 h-8" />
             </div>
             <div className="max-w-md mx-auto">
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-slate-900 font-heading">
                 Enter Your A/L Results to Compare Courses
               </h2>
               <p className="text-sm text-slate-500 mt-2 leading-relaxed">
@@ -175,7 +209,7 @@ export const CompareCoursesPage: FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/after-al/results')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
               >
                 <span>Go to My A/L Results</span>
                 <ArrowRight className="w-4 h-4" />
@@ -183,23 +217,23 @@ export const CompareCoursesPage: FC = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[850px]">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-white">
+                  <tr className="border-b border-slate-100 bg-slate-50/60">
                     <th className="py-6 px-6 text-xs font-bold uppercase tracking-wider text-slate-900 w-52 min-w-[180px]">
                       ATTRIBUTE
                     </th>
                     {selectedCourses.map((course) => (
-                      <th key={course.id} className="py-6 px-6 text-sm md:text-[15px] font-bold text-slate-900 min-w-[220px] relative">
+                      <th key={course.id} className="py-6 px-6 text-sm md:text-[15px] font-extrabold text-slate-900 min-w-[220px] relative font-heading">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate">{formatDegreeName(course.courseName)}</span>
                           {selectedCourses.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveCourse(course.id)}
-                              className="text-slate-400 hover:text-slate-700 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-200/60 transition-colors cursor-pointer"
                               title="Remove course"
                             >
                               <X className="w-4 h-4" />
@@ -214,7 +248,7 @@ export const CompareCoursesPage: FC = () => {
                         <button
                           type="button"
                           onClick={() => setIsAddModalOpen(true)}
-                          className="py-2 px-4 border border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 rounded-xl flex items-center justify-center gap-1.5 text-slate-400 hover:text-blue-600 transition-all cursor-pointer text-xs font-semibold"
+                          className="py-2.5 px-4 border border-dashed border-slate-200 hover:border-[#1b497d]/40 hover:bg-[#1b497d]/5 rounded-xl flex items-center justify-center gap-1.5 text-slate-500 hover:text-[#1b497d] transition-all cursor-pointer text-xs font-bold shadow-2xs"
                         >
                           <Plus className="w-4 h-4" />
                           <span>Add Course</span>
@@ -377,7 +411,12 @@ export const CompareCoursesPage: FC = () => {
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-base font-bold text-slate-900">Select Degree Program to Compare</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900">Select Degree Program to Compare</h3>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    {selectedCourses.length}/4
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
@@ -394,7 +433,7 @@ export const CompareCoursesPage: FC = () => {
                   value={courseSearchQuery}
                   onChange={(e) => setCourseSearchQuery(e.target.value)}
                   placeholder="Search by degree name or university..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1b497d]/20 focus:border-[#1b497d]"
                 />
               </div>
 

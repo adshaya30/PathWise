@@ -45,10 +45,10 @@ export function PasswordStrengthIndicator({
     <div className={`mt-1 flex flex-col gap-2 ${className}`}>
       {/* 4-Segment Strength Bar */}
       <div className="grid grid-cols-4 gap-1.5">
-        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 1 ? 'bg-teal' : 'bg-slate-200'}`} />
-        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 2 ? 'bg-teal' : 'bg-slate-200'}`} />
-        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 3 ? 'bg-teal' : 'bg-slate-200'}`} />
-        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 4 ? 'bg-teal' : 'bg-slate-200'}`} />
+        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 1 ? 'bg-[#1b497d]' : 'bg-slate-200'}`} />
+        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 2 ? 'bg-[#1b497d]' : 'bg-slate-200'}`} />
+        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 3 ? 'bg-[#1b497d]' : 'bg-slate-200'}`} />
+        <div className={`h-1 rounded-full transition-colors duration-300 ${score >= 4 ? 'bg-[#1b497d]' : 'bg-slate-200'}`} />
       </div>
       
       {/* Strength Label */}

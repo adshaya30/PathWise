@@ -29,7 +29,7 @@ export function LandingPage() {
           </p>
 
           <div className="flex flex-wrap justify-center items-center gap-4 mb-6">
-            <Link to="/after-ol" className="px-6 py-3.5 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md text-lg active:scale-95">
+            <Link to="/after-ol" className="px-6 py-3.5 bg-deep-blue hover:bg-[#153860] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md text-lg active:scale-95">
               I'm Choosing A/L Subjects
             </Link>
             <Link to="/after-al/results" className="px-6 py-3.5 bg-teal hover:bg-[#0f766e] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md text-lg active:scale-95">

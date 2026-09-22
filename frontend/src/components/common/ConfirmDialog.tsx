@@ -74,7 +74,7 @@ export function ConfirmDialog({
             className={`px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition-all shadow-md flex items-center gap-2 ${
               isDestructive
                 ? 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
-                : 'bg-deep-blue hover:bg-[#1d4ed8] shadow-deep-blue/20'
+                : 'bg-deep-blue hover:bg-[#153860] shadow-deep-blue/20'
             }`}
           >
             {isLoading && <Loader2 size={16} className="animate-spin" />}

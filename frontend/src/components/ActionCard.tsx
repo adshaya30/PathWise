@@ -13,7 +13,7 @@ interface ActionCardProps {
 
 export function ActionCard({ icon, title, description, buttonText, buttonColor, rotation, linkTo }: ActionCardProps) {
   const btnColorClass = buttonColor === 'deep-blue' 
-    ? 'bg-deep-blue hover:bg-[#1d4ed8] shadow-deep-blue/30 hover:shadow-deep-blue/50' 
+    ? 'bg-deep-blue hover:bg-[#153860] shadow-deep-blue/30 hover:shadow-deep-blue/50' 
     : 'bg-teal hover:bg-[#0f766e] shadow-teal/30 hover:shadow-teal/50';
 
   const rotationClass = rotation === 'rotate-3' ? 'group-hover:rotate-3' : 'group-hover:-rotate-3';

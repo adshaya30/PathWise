@@ -323,7 +323,7 @@ export function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#1d4ed8] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] mt-2 flex items-center justify-center gap-2 text-[15px]"
+                className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#153860] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] mt-2 flex items-center justify-center gap-2 text-[15px]"
               >
                 {isLoading ? (
                   <>
@@ -442,7 +442,7 @@ export function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#1d4ed8] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-[15px] mt-2"
+              className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#153860] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-[15px] mt-2"
             >
               {isLoading ? (
                 <>
@@ -614,7 +614,7 @@ export function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] text-[15px]"
+              className="w-full py-3.5 px-4 bg-deep-blue hover:bg-[#153860] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all active:scale-[0.99] text-[15px]"
             >
               Continue
             </button>

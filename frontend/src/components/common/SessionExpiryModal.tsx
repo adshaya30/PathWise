@@ -46,7 +46,7 @@ export function SessionExpiryModal() {
             <button
               type="button"
               onClick={extendSession}
-              className="px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-deep-blue hover:bg-[#1d4ed8] shadow-md shadow-deep-blue/20 transition-all flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-deep-blue hover:bg-[#153860] shadow-md shadow-deep-blue/20 transition-all flex items-center gap-1.5"
             >
               <RefreshCw size={15} />
               Stay Signed In
@@ -76,7 +76,7 @@ export function SessionExpiryModal() {
           <button
             type="button"
             onClick={handleLoginRedirect}
-            className="w-full py-3.5 bg-deep-blue hover:bg-[#1d4ed8] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all text-sm"
+            className="w-full py-3.5 bg-deep-blue hover:bg-[#153860] text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all text-sm"
           >
             Log In Again
           </button>

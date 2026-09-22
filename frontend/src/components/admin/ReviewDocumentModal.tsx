@@ -458,7 +458,7 @@ export const ReviewDocumentModal: FC<ReviewDocumentModalProps> = ({
                         href={downloadUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 hover:underline"
+                        className="text-[11px] text-[#1b497d] hover:text-[#153860] font-semibold flex items-center gap-1 hover:underline"
                         title="Download / Preview original PDF in new tab"
                       >
                         <ExternalLink className="w-3 h-3" />

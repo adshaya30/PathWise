@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Loader2, BookOpen, Building2, TrendingUp, ArrowRight } from 'lucide-react';
+import { Search, Filter, BookOpen, Building2, TrendingUp, ArrowRight } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
+import { PageLoadingState } from '../../components/common/PageLoadingState';
 import { afterAlApiService, type CutoffItem } from '../../services/after-al/afterAlApiService';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
 import { InputField } from '../../components/InputField';
@@ -164,17 +165,17 @@ export const ZScoreInfoPage: FC = () => {
   const busy = profileLoading || (hasResult && loading);
 
   return (
-    <AfterAlLayout title="Z-Score Info">
-      <div className="space-y-4">
+    <AfterAlLayout
+      title="Z-Score Info"
+      subtitle="Published UGC cutoff Z-scores by degree, university, and academic year."
+    >
+      <div className="space-y-6">
         {busy ? (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs py-20 flex flex-col items-center justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-3" />
-            <p className="text-sm font-medium">Loading published Z-scores from database...</p>
-          </div>
+          <PageLoadingState message="Loading published Z-scores from database..." />
         ) : !hasResult ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-10 md:p-14 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
-              <TrendingUp className="w-8 h-8" />
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-10 md:p-14 text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-[#1b497d]/20">
+              <img src="/images/after-al-logo.png" alt="PathWise Logo" className="w-16 h-16 rounded-2xl object-cover" />
             </div>
             <div className="max-w-md mx-auto">
               <h2 className="text-xl font-bold text-slate-900 font-heading">
@@ -190,7 +191,7 @@ export const ZScoreInfoPage: FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/after-al/results')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
               >
                 <span>Go to My A/L Results</span>
                 <ArrowRight className="w-4 h-4" />
@@ -200,7 +201,7 @@ export const ZScoreInfoPage: FC = () => {
         ) : (
           <>
             {/* Filter Controls Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
                 {/* Search Input using InputField Component */}
                 <div className="flex-1 min-w-[220px]">
@@ -209,35 +210,35 @@ export const ZScoreInfoPage: FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search degree or university..."
-                    className="bg-slate-50 border-slate-200 py-2 text-sm rounded-xl"
+                    className="bg-slate-50 border-slate-200 py-2.5 text-sm rounded-xl focus:ring-2 focus:ring-[#1b497d]/20 focus:border-[#1b497d]"
                   />
                 </div>
 
                 {/* Academic Year Filter with Label */}
                 <div className="flex items-center gap-2 min-w-[160px]">
-                  <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Year:</span>
+                  <span className="text-xs font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider">Year:</span>
                   <div className="flex-1">
                     <SelectField
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
                       options={yearOptions}
-                      className="bg-slate-50 border-slate-200 py-2 text-sm rounded-xl"
+                      className="bg-slate-50 border-slate-200 py-2.5 text-sm rounded-xl"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+              <div className="text-xs font-bold text-slate-500 flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-200/70">
                 <Filter className="w-3.5 h-3.5 text-slate-400" />
-                Showing <span className="text-blue-600 font-bold">{filteredCutoffs.length}</span> records
+                <span>Showing <span className="text-[#1b497d] font-extrabold">{filteredCutoffs.length}</span> records</span>
               </div>
             </div>
 
             {/* Z-Score Data Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
               {filteredCutoffs.length === 0 ? (
                 <div className="py-16 text-center px-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#1b497d]/10 text-[#1b497d] flex items-center justify-center mx-auto mb-3">
                     <TrendingUp className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-bold text-slate-800">No Matching Z-Score Records</h3>
@@ -276,7 +277,7 @@ export const ZScoreInfoPage: FC = () => {
                               {/* Degree */}
                               <td className="py-4 px-6 font-semibold text-slate-900">
                                 <div className="flex items-center gap-2">
-                                  <BookOpen className="w-4 h-4 text-blue-500 flex-shrink-0 hidden sm:block" />
+                                  <BookOpen className="w-4 h-4 text-[#1b497d] flex-shrink-0 hidden sm:block" />
                                   <span>{cleanDegree}</span>
                                 </div>
                               </td>
@@ -290,7 +291,7 @@ export const ZScoreInfoPage: FC = () => {
                               </td>
 
                               {/* Z-Score */}
-                              <td className="py-4 px-6 text-right font-bold text-blue-600 font-mono text-base whitespace-nowrap">
+                              <td className="py-4 px-6 text-right font-bold text-[#1b497d] font-mono text-base whitespace-nowrap">
                                 {zVal !== null ? zVal.toFixed(4) : 'NQC'}
                               </td>
                             </tr>

@@ -325,7 +325,7 @@ export const AdminDocumentsPage: FC = () => {
                 setStatusFilter('All');
                 setTypeFilter('All');
               }}
-              className="text-xs text-blue-600 hover:text-blue-700 font-semibold px-2 py-1 cursor-pointer"
+              className="text-xs text-[#1b497d] hover:text-[#153860] font-semibold px-2 py-1 cursor-pointer"
             >
               Reset Filters
             </button>
@@ -365,7 +365,7 @@ export const AdminDocumentsPage: FC = () => {
                       {documents.length === 0 && (
                         <button
                           onClick={() => setIsUploadOpen(true)}
-                          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors cursor-pointer"
+                          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#1b497d] hover:bg-[#153860] text-white text-xs font-semibold rounded-xl shadow-sm transition-colors cursor-pointer"
                         >
                           <Plus className="w-4 h-4" /> Upload Document
                         </button>
@@ -385,7 +385,7 @@ export const AdminDocumentsPage: FC = () => {
                             <FileText className="w-4.5 h-4.5" />
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">
+                            <div className="font-semibold text-slate-800 text-sm group-hover:text-[#1b497d] transition-colors">
                               {doc.title}
                             </div>
                             <div className="text-xs text-slate-400 font-medium mt-0.5">
@@ -441,7 +441,7 @@ export const AdminDocumentsPage: FC = () => {
                             onClick={() => setSelectedDocForView(doc)}
                             title="View Document Details"
                             aria-label={`View ${doc.title}`}
-                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-[#1b497d] hover:bg-[#1b497d]/10 rounded-lg transition-colors cursor-pointer"
                           >
                             <Eye className="w-4 h-4" />
                           </button>

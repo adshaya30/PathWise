@@ -11,12 +11,12 @@ import {
   Compass,
   CheckCircle2,
   Bookmark,
-  Briefcase,
   Settings,
   LogOut,
   Sparkles,
   BarChart2,
   TrendingUp,
+  Heart,
 } from 'lucide-react';
 import type { NavItem, NavSection } from '../types/navigation';
 
@@ -54,7 +54,7 @@ export const afterAlNavSections: NavSection[] = [
     title: 'My A/L Journey',
     items: [
       { name: 'My A/L Results', path: '/after-al/results', icon: GraduationCap },
-      { name: 'Check Eligibility', path: '/after-al/eligibility', icon: CheckCircle2, badge: 3 },
+      { name: 'Check Eligibility', path: '/after-al/eligibility', icon: CheckCircle2 },
       { name: 'University Courses', path: '/after-al/courses', icon: Landmark },
       { name: 'Compare Courses', path: '/after-al/compare', icon: BarChart2 },
       { name: 'Z-Score Info', path: '/after-al/zscore', icon: TrendingUp },
@@ -84,16 +84,19 @@ export const afterOlNavSections: NavSection[] = [
   {
     title: 'Overview',
     items: [
-      { name: 'O/L Overview', path: '/after-ol/dashboard', icon: LayoutDashboard },
+      { name: 'Dashboard', path: '/after-ol/dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'My O/L Journey',
+    title: 'Explore Pathway',
     items: [
-      { name: 'A/L Stream Finder', path: '/after-ol/streams', icon: Compass, badge: 'New' },
-      { name: 'Subject Combinations', path: '/after-ol/subjects', icon: BookOpen },
-      { name: 'Requirements Checker', path: '/after-ol/eligibility', icon: ClipboardCheck },
-      { name: 'Career Pathways', path: '/after-ol/careers', icon: Briefcase },
+      { name: 'Discover', path: '/after-ol/discover', icon: Compass },
+      { name: 'Interests', path: '/after-ol/interests', icon: Heart },
+      { name: 'A/L Stream', path: '/after-ol/pathways', icon: Layers },
+      { name: 'Subjects', path: '/after-ol/subjects', icon: BookOpen },
+      { name: 'Courses', path: '/after-ol/study-options', icon: GraduationCap },
+      { name: 'Universities', path: '/after-ol/universities', icon: Landmark },
+      { name: 'Saved Courses', path: '/after-ol/saved', icon: Bookmark },
     ],
   },
   {

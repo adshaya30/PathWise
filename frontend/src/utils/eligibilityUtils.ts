@@ -375,18 +375,18 @@ export function mapEvaluatedToComparisonItem(
 }
 
 export function buildComparePath(uniCodes: string[]): string {
-  const codes = uniCodes.filter(Boolean).slice(0, 4);
-  if (codes.length === 0) return '/after-al/compare';
-  return `/after-al/compare?courses=${codes.map(encodeURIComponent).join(',')}`;
+  const uniqueCodes = Array.from(new Set(uniCodes.filter(Boolean))).slice(0, 4);
+  if (uniqueCodes.length === 0) return '/after-al/compare';
+  return `/after-al/compare?courses=${uniqueCodes.map(encodeURIComponent).join(',')}`;
 }
 
 export function parseCompareCoursesParam(raw: string | null): string[] {
   if (!raw) return [];
-  return raw
+  const items = raw
     .split(',')
     .map((code) => code.trim())
-    .filter(Boolean)
-    .slice(0, 4);
+    .filter(Boolean);
+  return Array.from(new Set(items)).slice(0, 4);
 }
 
 export function groupCoursesByUniversity(courses: EvaluatedCourse[]): UniversityGroup[] {

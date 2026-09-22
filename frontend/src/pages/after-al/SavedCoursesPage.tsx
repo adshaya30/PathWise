@@ -1,7 +1,8 @@
 import { useMemo, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, BookOpen, GraduationCap, ArrowRight, Loader2 } from 'lucide-react';
+import { Bookmark, BookOpen, GraduationCap, ArrowRight } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
+import { PageLoadingState } from '../../components/common/PageLoadingState';
 import { EligibilityBadge, type EligibilityStatus } from '../../components/common/EligibilityBadge';
 import { SavedCourseButton } from '../../components/common/SavedCourseButton';
 import { useStudentEligibility } from '../../hooks/useStudentEligibility';
@@ -33,15 +34,12 @@ export const SavedCoursesPage: FC = () => {
 
   return (
     <AfterAlLayout title="Saved Courses" subtitle="Your bookmarked degree programs, with live eligibility status.">
-      <div className="max-w-5xl mx-auto space-y-6 pt-2 pb-12">
+      <div className="space-y-6">
         {isLoading || savedLoading ? (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-16 text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-slate-700">Loading your saved courses...</p>
-          </div>
+          <PageLoadingState message="Loading your saved courses..." />
         ) : !hasResult ? (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-10 md:p-14 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-16 h-16 rounded-3xl bg-[#e8edf4] text-[#1b497d] flex items-center justify-center mx-auto shadow-inner">
               <GraduationCap className="w-8 h-8" />
             </div>
             <div className="max-w-md mx-auto">
@@ -56,7 +54,7 @@ export const SavedCoursesPage: FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/after-al/results')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
               >
                 <span>Go to My A/L Results</span>
                 <ArrowRight className="w-4 h-4" />
@@ -65,7 +63,7 @@ export const SavedCoursesPage: FC = () => {
           </div>
         ) : savedItems.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-16 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-[#e8edf4] text-[#1b497d] flex items-center justify-center mx-auto mb-3">
               <Bookmark className="w-7 h-7" />
             </div>
             <h3 className="text-base font-bold text-slate-800">
@@ -79,7 +77,7 @@ export const SavedCoursesPage: FC = () => {
             <button
               type="button"
               onClick={() => navigate('/after-al/courses')}
-              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
             >
               <BookOpen className="w-4 h-4" />
               Browse University Courses
@@ -97,7 +95,7 @@ export const SavedCoursesPage: FC = () => {
               {savedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="p-6 md:p-7 hover:bg-slate-50/50 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                  className="p-6 md:p-7 hover:bg-slate-50/60 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 group cursor-pointer"
                 >
                   <div className="space-y-1.5 flex-1 min-w-0 pr-2">
                     <div className="flex items-center gap-2.5">
@@ -105,12 +103,12 @@ export const SavedCoursesPage: FC = () => {
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: getDotColor(item.status) }}
                       />
-                      <h3 className="font-bold text-slate-900 text-base leading-snug">
+                      <h3 className="font-extrabold text-slate-900 text-base leading-snug font-heading group-hover:text-[#1b497d] transition-colors">
                         {item.courseName} <span className="font-normal text-slate-400">—</span> {item.university}
                       </h3>
                     </div>
 
-                    <p className="text-slate-600 text-sm pl-5 leading-relaxed">{item.explanation}</p>
+                    <p className="text-slate-600 text-sm pl-5 leading-relaxed font-normal">{item.explanation}</p>
 
                     <div className="pl-5 pt-1 flex flex-wrap gap-2">
                       <span className="inline-flex items-center text-[11px] font-medium bg-slate-100/90 text-slate-600 px-3 py-1 rounded-md border border-slate-200/70 font-mono tracking-tight">

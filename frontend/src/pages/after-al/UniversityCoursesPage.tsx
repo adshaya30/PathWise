@@ -1,7 +1,8 @@
 import { useMemo, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Loader2, CheckCircle2, AlertTriangle, XCircle, GraduationCap, ArrowRight, BarChart2 } from 'lucide-react';
+import { Search, CheckCircle2, AlertTriangle, XCircle, ArrowRight, BarChart2 } from 'lucide-react';
 import { AfterAlLayout } from '../../components/after-al/AfterAlLayout';
+import { PageLoadingState } from '../../components/common/PageLoadingState';
 import { EligibilityBadge } from '../../components/common/EligibilityBadge';
 import { SavedCourseButton } from '../../components/common/SavedCourseButton';
 import { afterAlApiService } from '../../services/after-al/afterAlApiService';
@@ -82,14 +83,11 @@ export const UniversityCoursesPage: FC = () => {
     <AfterAlLayout title="University Courses" subtitle="Find degrees and university cutoff marks across all state institutions.">
       <div className="space-y-6">
         {isLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <span className="text-sm font-medium">Loading universities and degree cutoffs...</span>
-          </div>
+          <PageLoadingState message="Loading universities and degree cutoffs..." />
         ) : !hasResult ? (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-10 md:p-14 text-center space-y-4">
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
-              <GraduationCap className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-[#1b497d]/20">
+              <img src="/images/after-al-logo.png" alt="PathWise Logo" className="w-16 h-16 rounded-2xl object-cover" />
             </div>
             <div className="max-w-md mx-auto">
               <h2 className="text-xl font-bold text-slate-900 font-heading">
@@ -105,7 +103,7 @@ export const UniversityCoursesPage: FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/after-al/results')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl text-sm font-bold shadow-md shadow-[#1b497d]/20 transition-all cursor-pointer"
               >
                 <span>Go to My A/L Results</span>
                 <ArrowRight className="w-4 h-4" />
@@ -114,23 +112,24 @@ export const UniversityCoursesPage: FC = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <button
                 type="button"
                 onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'Eligible' ? 'All' : 'Eligible')}
-                className={`p-5 rounded-3xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${selectedStatusFilter === 'Eligible'
-                    ? 'bg-emerald-50/80 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
-                    : 'bg-white border-slate-200/80 hover:border-emerald-300 hover:shadow-xs'
-                  }`}
+                className={`p-6 rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${
+                  selectedStatusFilter === 'Eligible'
+                    ? 'bg-emerald-50/90 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                    : 'bg-white border-slate-200/90 hover:border-emerald-300 hover:shadow-md'
+                }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Eligible</span>
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-105 transition-transform">
+                    <CheckCircle2 className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <div className="mt-3">
-                  <div className="text-3xl font-bold text-emerald-950 font-heading tracking-tight">
+                <div>
+                  <div className="text-3xl font-extrabold text-emerald-950 font-heading tracking-tight">
                     {counts.eligible}
                   </div>
                   <p className="text-xs text-emerald-700/80 mt-1 font-medium">Courses cleared by your Z-Score</p>
@@ -140,41 +139,43 @@ export const UniversityCoursesPage: FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'Needs review' ? 'All' : 'Needs review')}
-                className={`p-5 rounded-3xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${selectedStatusFilter === 'Needs review'
-                    ? 'bg-amber-50/80 border-amber-500 shadow-md ring-2 ring-amber-500/20'
-                    : 'bg-white border-slate-200/80 hover:border-amber-300 hover:shadow-xs'
-                  }`}
+                className={`p-6 rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${
+                  selectedStatusFilter === 'Needs review'
+                    ? 'bg-amber-50/90 border-amber-500 shadow-md ring-2 ring-amber-500/20'
+                    : 'bg-white border-slate-200/90 hover:border-amber-300 hover:shadow-md'
+                }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Needs Review</span>
-                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                    <AlertTriangle className="w-4 h-4" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 group-hover:scale-105 transition-transform">
+                    <AlertTriangle className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <div className="mt-3">
-                  <div className="text-3xl font-bold text-amber-950 font-heading tracking-tight">
+                <div>
+                  <div className="text-3xl font-extrabold text-amber-950 font-heading tracking-tight">
                     {counts.needsReview}
                   </div>
-                  <p className="text-xs text-amber-700/80 mt-1 font-medium">Requires Aptitude Test / borderline match</p>
+                  <p className="text-xs text-amber-700/80 mt-1 font-medium">Requires Aptitude Test / borderline</p>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'Not eligible' ? 'All' : 'Not eligible')}
-                className={`p-5 rounded-3xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${selectedStatusFilter === 'Not eligible'
-                    ? 'bg-rose-50/80 border-rose-500 shadow-md ring-2 ring-rose-500/20'
-                    : 'bg-white border-slate-200/80 hover:border-rose-300 hover:shadow-xs'
-                  }`}
+                className={`p-6 rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between group ${
+                  selectedStatusFilter === 'Not eligible'
+                    ? 'bg-rose-50/90 border-rose-500 shadow-md ring-2 ring-rose-500/20'
+                    : 'bg-white border-slate-200/90 hover:border-rose-300 hover:shadow-md'
+                }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">Not Eligible</span>
-                  <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
-                    <XCircle className="w-4 h-4" />
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600 group-hover:scale-105 transition-transform">
+                    <XCircle className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <div className="mt-3">
-                  <div className="text-3xl font-bold text-rose-950 font-heading tracking-tight">
+                <div>
+                  <div className="text-3xl font-extrabold text-rose-950 font-heading tracking-tight">
                     {counts.notEligible}
                   </div>
                   <p className="text-xs text-rose-700/80 mt-1 font-medium">Z-Score below published cutoffs</p>
@@ -182,7 +183,7 @@ export const UniversityCoursesPage: FC = () => {
               </button>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-3">
               <div className="relative flex-1 min-w-[240px]">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -190,7 +191,7 @@ export const UniversityCoursesPage: FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search university or degree course..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1b497d]/20 focus:border-[#1b497d]"
                 />
               </div>
 
@@ -200,10 +201,11 @@ export const UniversityCoursesPage: FC = () => {
                     key={status}
                     type="button"
                     onClick={() => setSelectedStatusFilter(status)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${selectedStatusFilter === status
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      selectedStatusFilter === status
                         ? 'bg-slate-900 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
-                      }`}
+                    }`}
                   >
                     {status}
                   </button>
@@ -212,27 +214,27 @@ export const UniversityCoursesPage: FC = () => {
             </div>
 
             {filteredUniversities.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs">
+              <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-2xs">
                 <p className="text-base font-bold text-slate-800">No university courses found</p>
                 <p className="text-xs text-slate-400 mt-1">Try clearing your filters or changing your search keywords.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredUniversities.map((uni) => (
                   <div
                     key={uni.id}
-                    className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-4"
+                    className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-[#1b497d]/40 transition-all p-6 md:p-7 flex flex-col justify-between space-y-4 group"
                   >
                     <div>
                       {/* Top Header */}
                       <div>
-                        <div className="inline-flex items-center px-3.5 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#1b497d]/10 text-[#1b497d] font-bold text-xs">
                           {uni.code}
                         </div>
-                        <h3 className="font-bold text-slate-900 text-lg font-heading tracking-tight mt-2.5">
+                        <h3 className="font-extrabold text-slate-900 text-lg font-heading tracking-tight mt-2.5 group-hover:text-[#1b497d] transition-colors">
                           {formatUniversityName(uni.name)}
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-slate-500 mt-1 font-medium">
                           {uni.location} · {uni.eligibleCount} eligible course{uni.eligibleCount !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -243,9 +245,9 @@ export const UniversityCoursesPage: FC = () => {
                           <div
                             key={course.id}
                             onClick={() => void openCourseDetail(course, uni.name)}
-                            className="flex items-center justify-between gap-3 group cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 py-1 rounded-xl transition-colors"
+                            className="flex items-center justify-between gap-3 group/course cursor-pointer hover:bg-slate-50/60 -mx-2 px-2.5 py-1.5 rounded-xl transition-colors"
                           >
-                            <span className="font-semibold text-slate-800 text-sm truncate group-hover:text-blue-600 transition-colors">
+                            <span className="font-bold text-slate-800 text-sm truncate group-hover/course:text-[#1b497d] transition-colors">
                               {formatDegreeName(course.courseName)}
                             </span>
                             <div className="flex items-center gap-2 shrink-0">
@@ -279,7 +281,7 @@ export const UniversityCoursesPage: FC = () => {
                       <button
                         type="button"
                         onClick={() => setExpandedUniId(expandedUniId === uni.id ? null : uni.id)}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 cursor-pointer group"
+                        className="text-xs font-bold text-[#1b497d] hover:text-[#153860] flex items-center gap-1.5 cursor-pointer group/btn"
                       >
                         <span>
                           {expandedUniId === uni.id
@@ -288,7 +290,7 @@ export const UniversityCoursesPage: FC = () => {
                             ? `View all ${uni.courses.length} courses`
                             : 'View all courses'}
                         </span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                       </button>
                     </div>
                   </div>
@@ -303,7 +305,7 @@ export const UniversityCoursesPage: FC = () => {
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100">
               <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-[#1b497d] uppercase tracking-wider">
                     {selectedCourseInfo.uniName}
                   </span>
                   <h3 className="text-lg font-bold text-slate-900 mt-0.5">{selectedCourseInfo.course.courseName}</h3>
@@ -411,7 +413,7 @@ export const UniversityCoursesPage: FC = () => {
                   <button
                     type="button"
                     onClick={() => navigate(buildComparePath([selectedCourseInfo.course.uniCode]))}
-                    className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 bg-[#1b497d] hover:bg-[#153860] text-white rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
                   >
                     <BarChart2 className="w-3.5 h-3.5" />
                     Compare Course

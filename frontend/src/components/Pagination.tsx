@@ -86,7 +86,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
             currentPage === 1
               ? 'text-slate-300 bg-white border border-slate-100 cursor-not-allowed'
-              : 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-blue-600 shadow-2xs cursor-pointer'
+              : 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-[#1b497d] shadow-2xs cursor-pointer'
           }`}
           aria-label="Previous Page"
         >
@@ -118,8 +118,8 @@ export const Pagination: React.FC<PaginationProps> = ({
                 onClick={() => onPageChange(pageNum)}
                 className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
-                    : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-200 shadow-2xs'
+                    ? 'bg-[#1b497d] text-white shadow-sm shadow-[#1b497d]/20'
+                    : 'text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-[#1b497d] hover:border-[#1b497d]/30 shadow-2xs'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
@@ -137,7 +137,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
             currentPage === totalPages
               ? 'text-slate-300 bg-white border border-slate-100 cursor-not-allowed'
-              : 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-blue-600 shadow-2xs cursor-pointer'
+              : 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-[#1b497d] shadow-2xs cursor-pointer'
           }`}
           aria-label="Next Page"
         >

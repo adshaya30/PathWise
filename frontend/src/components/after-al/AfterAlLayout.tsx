@@ -43,6 +43,8 @@ export const AfterAlLayout: FC<AfterAlLayoutProps> = ({
     <DashboardLayout
       brandTitle="PathWise"
       portalBadge="After A/L Portal"
+      badgeBgColor="text-[#1b497d]"
+      themeColor="blue"
       sections={sections}
       showUserProfile={true}
       userStream={result?.stream}

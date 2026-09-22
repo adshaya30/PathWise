@@ -34,12 +34,12 @@ export const SavedCourseButton: FC<SavedCourseButtonProps> = ({ uniCode, size = 
       onClick={handleClick}
       aria-label={saved ? 'Remove from saved courses' : 'Save course'}
       aria-pressed={saved}
-      className={`inline-flex items-center rounded-lg border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${
+      className={`inline-flex items-center rounded-lg border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1b497d]/30 ${
         sizeClasses
       } ${
         saved
-          ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-          : 'bg-white border-slate-200/80 text-slate-400 hover:text-blue-600 hover:border-blue-300'
+          ? 'bg-[#1b497d] border-[#1b497d] text-white shadow-sm'
+          : 'bg-white border-slate-200/80 text-slate-400 hover:text-[#1b497d] hover:border-[#1b497d]/40'
       } ${pending ? 'opacity-60' : ''} ${className}`}
     >
       <Bookmark className={`${iconClasses} ${saved ? 'fill-current' : ''}`} />

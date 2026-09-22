@@ -132,7 +132,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = {InvalidCredentialsException.class, AccountLockedException.class})
     public AuthResponseDto login(LoginRequestDto request, HttpServletResponse response) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 

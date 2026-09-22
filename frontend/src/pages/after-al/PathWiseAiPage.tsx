@@ -182,8 +182,12 @@ export const PathWiseAiPage: FC = () => {
   };
 
   return (
-    <AfterAlLayout title="PathWise AI" showAiChat={false}>
-      <div className="w-full max-w-7xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col h-[calc(100vh-125px)] max-h-[780px] min-h-[540px] overflow-hidden">
+    <AfterAlLayout
+      title="PathWise AI"
+      subtitle="Ask questions about degrees, cutoffs, and admission requirements."
+      showAiChat={false}
+    >
+      <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-2xs flex flex-col h-[calc(100vh-125px)] max-h-[780px] min-h-[540px] overflow-hidden">
         {/* Chat Header Bar */}
         <div className="px-6 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2.5">
@@ -205,26 +209,26 @@ export const PathWiseAiPage: FC = () => {
         <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/30 text-sm">
           {messages.length === 0 && (
             <div className="text-center py-10 px-4 max-w-3xl mx-auto space-y-5">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100 shadow-2xs">
-                <AiSparkleIcon className="w-8 h-8 text-blue-600" />
+              <div className="w-14 h-14 rounded-2xl bg-[#e8edf4] text-[#1b497d] flex items-center justify-center mx-auto border border-[#1b497d]/20 shadow-2xs">
+                <AiSparkleIcon className="w-8 h-8 text-[#1b497d]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">How can PathWise AI assist you today?</h3>
+                <h3 className="text-xl font-bold text-slate-900 font-heading">How can PathWise AI assist you today?</h3>
                 <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
                   Ask any question about cutoff scores, degree options, university quotas, or aptitude test preparation.
                 </p>
               </div>
 
               {/* Starter Question Pills */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 text-left">
                 {STARTER_PROMPTS.map((prompt, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSend(prompt)}
-                    className="p-3 bg-white border border-slate-200/90 hover:border-blue-400 hover:bg-blue-50/50 rounded-xl text-xs text-slate-700 font-medium transition-all cursor-pointer shadow-2xs leading-snug"
+                    className="p-4 bg-white border border-slate-200/90 hover:border-[#1b497d]/40 hover:bg-[#e8edf4]/40 rounded-2xl text-xs text-slate-700 font-semibold transition-all cursor-pointer shadow-2xs hover:shadow-md leading-relaxed group"
                   >
-                    {prompt}
+                    <span className="group-hover:text-[#1b497d] transition-colors">{prompt}</span>
                   </button>
                 ))}
               </div>
@@ -237,7 +241,7 @@ export const PathWiseAiPage: FC = () => {
               className={`flex flex-col ${msg.sender === 'USER' ? 'items-end' : 'items-start'}`}
             >
               {msg.sender === 'USER' ? (
-                <div className="max-w-[80%] bg-blue-600 text-white px-5 py-3 rounded-2xl rounded-br-xs shadow-xs text-sm font-medium leading-relaxed">
+                <div className="max-w-[80%] bg-[#1b497d] text-white px-5 py-3 rounded-2xl rounded-br-xs shadow-xs text-sm font-medium leading-relaxed">
                   {msg.content}
                 </div>
               ) : (
@@ -250,7 +254,7 @@ export const PathWiseAiPage: FC = () => {
 
           {loading && (
             <div className="flex items-center gap-2.5 bg-white border border-slate-200 p-3.5 rounded-2xl w-fit shadow-xs text-slate-600">
-              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#1b497d]" />
               <span className="text-xs font-medium">Checking UGC cutoff records & analyzing...</span>
             </div>
           )}
@@ -265,7 +269,7 @@ export const PathWiseAiPage: FC = () => {
                     key={i}
                     type="button"
                     onClick={() => handleSend(q)}
-                    className="px-3 py-2 bg-white border border-blue-200 text-blue-700 font-semibold text-xs rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer shadow-2xs"
+                    className="px-3 py-2 bg-white border border-[#1b497d]/30 text-[#1b497d] font-semibold text-xs rounded-xl hover:bg-[#e8edf4] hover:border-[#1b497d]/50 transition-all cursor-pointer shadow-2xs"
                   >
                     {q}
                   </button>
@@ -290,12 +294,12 @@ export const PathWiseAiPage: FC = () => {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Ask anything about courses, minimum Z-scores, or prerequisites..."
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b497d]/20 focus:border-[#1b497d] transition-all"
           />
           <button
             type="submit"
             disabled={!inputMessage.trim() || loading}
-            className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm flex items-center gap-2 flex-shrink-0"
+            className="px-5 py-3 bg-[#1b497d] hover:bg-[#153860] text-white rounded-2xl font-bold text-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm flex items-center gap-2 flex-shrink-0"
           >
             <span>Ask</span>
             <Send className="w-4 h-4" />

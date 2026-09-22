@@ -250,7 +250,7 @@ export function ResetPasswordPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 bg-deep-blue hover:bg-[#1d4ed8] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all flex items-center justify-center gap-2 text-sm mt-2"
+            className="w-full py-3.5 bg-deep-blue hover:bg-[#153860] disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-deep-blue/20 transition-all flex items-center justify-center gap-2 text-sm mt-2"
           >
             {isLoading ? (
               <>

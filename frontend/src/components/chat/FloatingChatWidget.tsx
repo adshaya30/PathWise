@@ -16,7 +16,11 @@ const STARTER_PROMPTS = [
   'What are the best degrees for Physical Science stream?',
 ];
 
-export const FloatingChatWidget: FC = () => {
+export interface FloatingChatWidgetProps {
+  themeColor?: 'blue' | 'teal';
+}
+
+export const FloatingChatWidget: FC<FloatingChatWidgetProps> = ({ themeColor = 'blue' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -167,6 +171,8 @@ export const FloatingChatWidget: FC = () => {
     setFollowUps([]);
   };
 
+  const isTeal = themeColor === 'teal';
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Floating Launcher Button */}
@@ -174,7 +180,11 @@ export const FloatingChatWidget: FC = () => {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xl shadow-blue-500/35 hover:bg-blue-700 hover:shadow-2xl hover:shadow-blue-500/50 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+          className={`w-14 h-14 rounded-full ${
+            isTeal
+              ? 'bg-[#0D645B] shadow-[#0D645B]/35 hover:bg-[#0A4E46] hover:shadow-[#0D645B]/50'
+              : 'bg-[#1b497d] shadow-[#1b497d]/35 hover:bg-[#153860] hover:shadow-[#1b497d]/50'
+          } text-white flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer`}
           title="Chat with PathWise AI"
         >
           <MessageCircle className="w-7 h-7 text-white stroke-[2.2]" />
@@ -185,7 +195,13 @@ export const FloatingChatWidget: FC = () => {
       {isOpen && (
         <div className="w-[360px] sm:w-[420px] h-[580px] max-h-[85vh] bg-white rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 p-4 text-white flex items-center justify-between shadow-xs">
+          <div
+            className={`${
+              isTeal
+                ? 'bg-gradient-to-r from-[#0D645B] via-[#0F766E] to-[#115E59]'
+                : 'bg-gradient-to-r from-[#1b497d] via-[#215a9a] to-[#143c6b]'
+            } p-4 text-white flex items-center justify-between shadow-xs`}
+          >
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20">
                 <MessageCircle className="w-5 h-5 text-white stroke-[2.2]" />
@@ -199,7 +215,7 @@ export const FloatingChatWidget: FC = () => {
               <button
                 type="button"
                 onClick={handleClearHistory}
-                className="p-1.5 text-blue-100 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                 title="Reset conversation"
               >
                 <Trash2 className="w-4 h-4" />
@@ -207,7 +223,7 @@ export const FloatingChatWidget: FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-blue-100 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                 title="Close chat"
               >
                 <X className="w-4 h-4" />
@@ -219,7 +235,11 @@ export const FloatingChatWidget: FC = () => {
           <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/60 text-xs">
             {messages.length === 0 && (
               <div className="text-center py-6 px-2 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
+                <div
+                  className={`w-12 h-12 rounded-2xl ${
+                    isTeal ? 'bg-teal-50 text-[#0D645B] border-teal-100' : 'bg-[#e8edf4] text-[#1b497d] border-[#1b497d]/20'
+                  } flex items-center justify-center mx-auto border`}
+                >
                   <MessageCircle className="w-6 h-6" />
                 </div>
                 <div>
@@ -238,7 +258,9 @@ export const FloatingChatWidget: FC = () => {
                       key={idx}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      className="w-full text-left p-2.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-xl text-xs text-slate-700 font-medium transition-all cursor-pointer shadow-2xs"
+                      className={`w-full text-left p-2.5 bg-white border border-slate-200 ${
+                        isTeal ? 'hover:border-[#0D645B] hover:bg-teal-50/50' : 'hover:border-[#1b497d] hover:bg-[#e8edf4]/40'
+                      } rounded-xl text-xs text-slate-700 font-medium transition-all cursor-pointer shadow-2xs`}
                     >
                       {prompt}
                     </button>
@@ -253,7 +275,11 @@ export const FloatingChatWidget: FC = () => {
                 className={`flex flex-col ${msg.sender === 'USER' ? 'items-end' : 'items-start'}`}
               >
                 {msg.sender === 'USER' ? (
-                  <div className="max-w-[82%] bg-blue-600 text-white p-3 rounded-2xl rounded-br-xs shadow-xs text-xs font-medium leading-relaxed">
+                  <div
+                    className={`max-w-[82%] ${
+                      isTeal ? 'bg-[#0D645B]' : 'bg-[#1b497d]'
+                    } text-white p-3 rounded-2xl rounded-br-xs shadow-xs text-xs font-medium leading-relaxed`}
+                  >
                     {msg.content}
                   </div>
                 ) : (
@@ -266,7 +292,7 @@ export const FloatingChatWidget: FC = () => {
 
             {loading && (
               <div className="flex items-center gap-2 bg-white border border-slate-200 p-3 rounded-2xl w-fit shadow-xs text-slate-500">
-                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                <Loader2 className={`w-4 h-4 animate-spin ${isTeal ? 'text-[#0D645B]' : 'text-[#1b497d]'}`} />
                 <span className="text-xs font-medium">Checking UGC cutoff records & analyzing...</span>
               </div>
             )}
@@ -281,7 +307,9 @@ export const FloatingChatWidget: FC = () => {
                       key={i}
                       type="button"
                       onClick={() => handleSend(q)}
-                      className="px-2.5 py-1.5 bg-white border border-blue-200 text-blue-700 font-semibold text-[11px] rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                      className={`px-2.5 py-1.5 bg-white border ${
+                        isTeal ? 'border-teal-200 text-[#0D645B] hover:bg-teal-50' : 'border-[#1b497d]/30 text-[#1b497d] hover:bg-[#e8edf4]'
+                      } font-semibold text-[11px] rounded-lg transition-colors cursor-pointer`}
                     >
                       {q}
                     </button>
@@ -306,12 +334,16 @@ export const FloatingChatWidget: FC = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Ask about degrees, cutoffs, eligibility..."
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className={`flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 ${
+                isTeal ? 'focus:ring-[#0D645B]/20 focus:border-[#0D645B]' : 'focus:ring-[#1b497d]/20 focus:border-[#1b497d]'
+              } transition-all`}
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || loading}
-              className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs flex-shrink-0"
+              className={`p-2.5 ${
+                isTeal ? 'bg-[#0D645B] hover:bg-[#0A4E46]' : 'bg-[#1b497d] hover:bg-[#153860]'
+              } text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs flex-shrink-0`}
               title="Send message"
             >
               <Send className="w-4 h-4" />

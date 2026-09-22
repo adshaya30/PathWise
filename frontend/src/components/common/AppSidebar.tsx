@@ -1,13 +1,15 @@
 import { useState, useEffect, type FC } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Compass, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { NavItem, NavSection } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
 
 export interface AppSidebarProps {
   brandTitle?: string;
+  brandLogo?: string;
   portalBadge?: string;
   badgeBgColor?: string;
+  themeColor?: 'blue' | 'teal';
   sections?: NavSection[];
   navItems?: NavItem[];
   bottomNavItems?: NavItem[];
@@ -25,8 +27,10 @@ const defaultBottomNav: NavItem[] = [
 
 export const AppSidebar: FC<AppSidebarProps> = ({
   brandTitle = 'PathWise',
+  brandLogo,
   portalBadge = 'Portal',
   badgeBgColor = 'text-slate-400',
+  themeColor = 'blue',
   sections,
   navItems,
   bottomNavItems = defaultBottomNav,
@@ -75,9 +79,25 @@ export const AppSidebar: FC<AppSidebarProps> = ({
         }`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0">
-            <Compass className="w-6 h-6" />
-          </div>
+          {brandLogo ? (
+            <img
+              src={brandLogo}
+              alt={brandTitle}
+              className="w-10 h-10 object-contain flex-shrink-0 select-none"
+            />
+          ) : themeColor === 'teal' ? (
+            <img
+              src="/images/after-ol-logo.png"
+              alt={brandTitle}
+              className="w-10 h-10 object-contain flex-shrink-0 select-none"
+            />
+          ) : (
+            <img
+              src="/images/after-al-logo.png"
+              alt={brandTitle}
+              className="w-10 h-10 object-contain flex-shrink-0 select-none"
+            />
+          )}
           {!collapsed && (
             <div className="min-w-0">
               <div className="text-slate-900 font-bold text-lg tracking-tight flex items-center gap-1.5 font-heading truncate">
@@ -96,9 +116,11 @@ export const AppSidebar: FC<AppSidebarProps> = ({
             type="button"
             onClick={toggleCollapse}
             title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            className={`p-1.5 rounded-xl border border-slate-200/90 text-slate-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer shadow-2xs ${
-              collapsed ? 'hidden group-hover:flex' : ''
-            }`}
+            className={`p-1.5 rounded-xl border border-slate-200/90 text-slate-500 hover:bg-slate-100 transition-all cursor-pointer shadow-2xs ${
+              themeColor === 'teal'
+                ? 'hover:text-[#0D645B] hover:border-teal-200 hover:bg-teal-50/70'
+                : 'hover:text-[#1b497d] hover:border-[#1b497d]/30 hover:bg-[#1b497d]/5'
+            } ${collapsed ? 'hidden group-hover:flex' : ''}`}
           >
             {collapsed ? (
               <ChevronRight className="w-4 h-4" />
@@ -116,7 +138,11 @@ export const AppSidebar: FC<AppSidebarProps> = ({
             type="button"
             onClick={toggleCollapse}
             title="Expand Sidebar"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+            className={`p-1.5 rounded-lg text-slate-400 transition-colors cursor-pointer ${
+              themeColor === 'teal'
+                ? 'hover:text-[#0D645B] hover:bg-teal-50'
+                : 'hover:text-[#1b497d] hover:bg-[#1b497d]/5'
+            }`}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -151,7 +177,9 @@ export const AppSidebar: FC<AppSidebarProps> = ({
                         : 'justify-between px-3.5 py-2.5'
                     } ${
                       isActive
-                        ? 'bg-blue-50 text-blue-600 font-semibold border border-blue-200/60 shadow-xs'
+                        ? themeColor === 'teal'
+                          ? 'bg-[#E6F5F2] text-[#0D645B] font-semibold border border-[#B3E5DC]/80 shadow-xs'
+                          : 'bg-[#e8edf4] text-[#1b497d] font-semibold border border-[#1b497d]/20 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                     }`
                   }
@@ -163,9 +191,19 @@ export const AppSidebar: FC<AppSidebarProps> = ({
 
                   {item.badge !== undefined && (
                     collapsed ? (
-                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white" />
+                      <span
+                        className={`absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-white ${
+                          themeColor === 'teal' ? 'bg-[#0D645B]' : 'bg-[#1b497d]'
+                        }`}
+                      />
                     ) : (
-                      <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold flex items-center justify-center">
+                      <span
+                        className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                          themeColor === 'teal'
+                            ? 'bg-[#D6F0EB] text-[#0D645B]'
+                            : 'bg-[#1b497d]/15 text-[#1b497d]'
+                        }`}
+                      >
                         {item.badge}
                       </span>
                     )
@@ -189,9 +227,15 @@ export const AppSidebar: FC<AppSidebarProps> = ({
         <div className={`border-t border-slate-100 bg-slate-50/50 ${collapsed ? 'p-3 flex justify-center' : 'p-4'}`}>
           <div
             className={`flex items-center ${collapsed ? 'justify-center group relative' : 'gap-3 min-w-0'}`}
-            title={collapsed ? `${userDisplayName} (A/L ${userYear} · ${userStream})` : undefined}
+            title={collapsed ? `${userDisplayName} (${userYear ? `${userYear} · ` : ''}${userStream || 'After O/L'})` : undefined}
           >
-            <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-semibold text-xs flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+            <div
+              className={`w-10 h-10 rounded-full text-white font-semibold text-xs flex items-center justify-center flex-shrink-0 ${
+                themeColor === 'teal'
+                  ? 'bg-[#0D645B] shadow-md shadow-teal-700/20'
+                  : 'bg-[#1b497d] shadow-md shadow-[#1b497d]/20'
+              }`}
+            >
               {userInitials}
             </div>
             {!collapsed && (
@@ -200,7 +244,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({
                   {userDisplayName}
                 </div>
                 <div className="text-[11px] text-slate-500 truncate font-medium">
-                  A/L {userYear} · {userStream}
+                  {userYear ? `${userYear} · ` : ''}{userStream || 'After O/L Explorer'}
                 </div>
               </div>
             )}
@@ -209,7 +253,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({
             {collapsed && (
               <span className="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
                 <p className="font-bold">{userDisplayName}</p>
-                <p className="text-[10px] text-slate-300">A/L {userYear} · {userStream}</p>
+                <p className="text-[10px] text-slate-300">{userYear ? `${userYear} · ` : ''}{userStream || 'After O/L'}</p>
               </span>
             )}
           </div>
@@ -233,7 +277,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({
                         : 'gap-3.5 px-4 py-2.5'
                     } ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-md'
+                        ? 'bg-[#1b497d] text-white shadow-md'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
                     }`
                   }

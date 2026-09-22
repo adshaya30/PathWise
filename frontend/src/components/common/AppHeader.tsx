@@ -8,6 +8,7 @@ export interface AppHeaderProps {
   title?: string;
   subtitle?: string;
   portalBadge?: string;
+  themeColor?: 'blue' | 'teal';
   showSearch?: boolean;
   searchPlaceholder?: string;
   onSearchChange?: (query: string) => void;
@@ -20,6 +21,7 @@ export const AppHeader: FC<AppHeaderProps> = ({
   title = 'Dashboard',
   subtitle,
   portalBadge: _portalBadge,
+  themeColor = 'blue',
   showSearch = false,
   searchPlaceholder = 'Search degrees, universities, subjects...',
   onSearchChange,
@@ -135,7 +137,7 @@ export const AppHeader: FC<AppHeaderProps> = ({
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 z-30 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span className="text-xs font-bold text-slate-900 uppercase">Alerts</span>
-                <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">New Cutoffs</span>
+                <span className="text-[10px] bg-[#e8edf4] text-[#1b497d] px-1.5 py-0.5 rounded-full font-bold">New Cutoffs</span>
               </div>
               <div className="py-3 text-xs text-slate-600">
                 <div className="font-semibold text-slate-800">UGC Cutoffs 2026 Updated</div>
@@ -152,7 +154,13 @@ export const AppHeader: FC<AppHeaderProps> = ({
             className="flex items-center gap-2 cursor-pointer focus:outline-none"
             aria-label="User profile"
           >
-            <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-md shadow-blue-500/20">
+            <div
+              className={`w-9 h-9 rounded-full ${
+                themeColor === 'teal'
+                  ? 'bg-[#0D645B] shadow-[#0D645B]/25'
+                  : 'bg-[#1b497d] shadow-[#1b497d]/20'
+              } text-white font-bold text-xs flex items-center justify-center shadow-md`}
+            >
               {initials}
             </div>
           </button>

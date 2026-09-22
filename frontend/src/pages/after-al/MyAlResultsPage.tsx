@@ -242,7 +242,7 @@ export const MyAlResultsPage: FC = () => {
         {/* Main Results Form Card */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 md:p-8 space-y-6"
+          className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-6 md:p-8 space-y-7"
         >
           {/* Row 1: Stream, Exam Year & District */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -253,7 +253,7 @@ export const MyAlResultsPage: FC = () => {
             >
               {!stream && <option value="" disabled hidden>— Select stream —</option>}
               {streams.map((s) => (
-                <option key={s} value={s} className="text-slate-900">
+                <option key={s} value={s} className="text-slate-900 font-medium">
                   {s}
                 </option>
               ))}
@@ -273,7 +273,7 @@ export const MyAlResultsPage: FC = () => {
             >
               {!district && <option value="" disabled hidden>— Select district —</option>}
               {districts.map((d) => (
-                <option key={d} value={d} className="text-slate-900">
+                <option key={d} value={d} className="text-slate-900 font-medium">
                   {d}
                 </option>
               ))}
@@ -283,15 +283,17 @@ export const MyAlResultsPage: FC = () => {
           {/* Section: SUBJECTS */}
           <div className="pt-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Subjects & Grades
-              </h3>
-              <span className="text-xs text-slate-400 font-medium">Select your 3 A/L subjects and grades</span>
+              <div>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Subjects & Grades
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Select your 3 A/L subjects and corresponding grades</p>
+              </div>
             </div>
 
             <div className="space-y-4">
               {/* Subject 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 items-start">
                 <div className="md:col-span-8">
                   <SelectField
                     label="Subject 1 *"
@@ -319,7 +321,7 @@ export const MyAlResultsPage: FC = () => {
               </div>
 
               {/* Subject 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 items-start">
                 <div className="md:col-span-8">
                   <SelectField
                     label="Subject 2 *"
@@ -347,7 +349,7 @@ export const MyAlResultsPage: FC = () => {
               </div>
 
               {/* Subject 3 */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 items-start">
                 <div className="md:col-span-8">
                   <SelectField
                     label="Subject 3 *"
@@ -414,9 +416,12 @@ export const MyAlResultsPage: FC = () => {
           {/* Section: G.C.E (O/L) PREREQUISITES */}
           <div className="pt-4 border-t border-slate-100">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                G.C.E (O/L) Requirements
-              </h3>
+              <div>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  G.C.E (O/L) Requirements
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Used for verifying specific university degree entry criteria</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -478,7 +483,7 @@ export const MyAlResultsPage: FC = () => {
             <button
               type="submit"
               disabled={isSaving || isLoadingExisting}
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-70 text-white font-semibold rounded-xl shadow-md shadow-blue-600/20 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3.5 bg-[#1b497d] hover:bg-[#153860] active:bg-[#0f2a4a] disabled:opacity-70 text-white font-bold rounded-xl shadow-md shadow-[#1b497d]/20 hover:shadow-lg hover:shadow-[#1b497d]/30 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm"
             >
               {isSaving ? (
                 <>

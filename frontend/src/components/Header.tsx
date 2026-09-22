@@ -24,21 +24,27 @@ export function Header() {
                 window.location.href = '/#cutoff-explorer';
               }
             }}
-            className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+            className="text-sm font-bold text-[#1b497d] hover:text-[#153860] transition-colors"
           >
             UGC Cut-Off Marks Explorer
           </a>
-          <Link to="#how-it-works" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
-            How it works
-          </Link>
-          <Link to="/journey" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
+          <a
+            href="#journey"
+            onClick={(e) => {
+              e.preventDefault();
+              const el = document.getElementById('journey');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.location.href = '/#journey';
+              }
+            }}
+            className="text-sm font-medium text-secondary hover:text-text-main transition-colors"
+          >
             Your journey
-          </Link>
-          <Link to="/ai" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
+          </a>
+          <Link to="/after-al/ai" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
             PathWise AI
-          </Link>
-          <Link to="/sources" className="text-sm font-medium text-secondary hover:text-text-main transition-colors">
-            Sources
           </Link>
         </nav>
 
@@ -52,7 +58,7 @@ export function Header() {
           </Link>
           <Link 
             to="/register"
-            className="px-4 py-2 text-sm font-semibold text-white bg-deep-blue rounded-md hover:bg-[#1d4ed8] transition-colors shadow-sm"
+            className="px-4 py-2 text-sm font-semibold text-white bg-deep-blue rounded-md hover:bg-[#153860] transition-colors shadow-sm"
           >
             Get started
           </Link>

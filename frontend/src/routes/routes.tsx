@@ -17,12 +17,26 @@ import { PathWiseAiPage } from '../pages/after-al/PathWiseAiPage';
 import { SavedCoursesPage } from '../pages/after-al/SavedCoursesPage';
 import { AfterAlLayout } from '../components/after-al/AfterAlLayout';
 import { AfterAlRouteLayout } from '../components/after-al/AfterAlRouteLayout';
+import { AfterOlStartingPointPage } from '../pages/after-ol/AfterOlStartingPointPage';
+import { CareerGoalSelectionPage } from '../pages/after-ol/CareerGoalSelectionPage';
+import { SubjectInterestsPage } from '../pages/after-ol/SubjectInterestsPage';
+import { DiscoverInterestsPage } from '../pages/after-ol/DiscoverInterestsPage';
+import { AfterOlDashboardPage } from '../pages/after-ol/AfterOlDashboardPage';
+import { AlPathExplorerPage } from '../pages/after-ol/AlPathExplorerPage';
+import { AfterOlSectionPage } from '../pages/after-ol/AfterOlSectionPage';
+import { AlSubjectSelectionPage } from '../pages/after-ol/AlSubjectSelectionPage';
+import { AlStudyOptionsPage } from '../pages/after-ol/AlStudyOptionsPage';
+import { AlUniversitiesPage } from '../pages/after-ol/AlUniversitiesPage';
+import { AfterOlAiPage } from '../pages/after-ol/AfterOlAiPage';
+import { AfterOlPathwayDetailPage } from '../pages/after-ol/AfterOlPathwayDetailPage';
+import { ErrorBoundaryPage } from '../pages/ErrorBoundaryPage';
 import { AdminRoute } from './AdminRoute';
 
 export const routes = [
   {
     path: '/',
     element: <LandingPage />,
+    errorElement: <ErrorBoundaryPage />,
   },
   {
     path: '/login',
@@ -44,14 +58,68 @@ export const routes = [
     path: '/reset-password',
     element: <ResetPasswordPage />,
   },
+  // ==========================================
+  // After O/L Student Portal Routes
+  // ==========================================
   {
     path: '/after-ol',
-    element: (
-      <div className="min-h-screen bg-bg-main flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-extrabold text-deep-blue mb-4">After O/L Pathways</h1>
-        <p className="text-secondary text-xl">Coming soon...</p>
-      </div>
-    ),
+    element: <AfterOlStartingPointPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/goal',
+    element: <CareerGoalSelectionPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/interests',
+    element: <SubjectInterestsPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/discover',
+    element: <DiscoverInterestsPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/dashboard',
+    element: <AfterOlDashboardPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/pathways',
+    element: <AlPathExplorerPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/subjects',
+    element: <AlSubjectSelectionPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/study-options',
+    element: <AlStudyOptionsPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/universities',
+    element: <AlUniversitiesPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/saved',
+    element: <AfterOlSectionPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/ai',
+    element: <AfterOlAiPage />,
+    errorElement: <ErrorBoundaryPage />,
+  },
+  {
+    path: '/after-ol/:pathway',
+    element: <AfterOlPathwayDetailPage />,
+    errorElement: <ErrorBoundaryPage />,
   },
   // ==========================================
   // After A/L Student Portal Routes
@@ -110,7 +178,7 @@ export const routes = [
               </p>
               <a
                 href="/after-al/results"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1b497d] hover:bg-[#153860] text-white text-xs font-semibold rounded-xl transition-colors"
               >
                 Go to My A/L Results
               </a>
@@ -163,7 +231,7 @@ export const routes = [
             </p>
             <a
               href="/admin/documents"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#1b497d] hover:bg-[#153860] text-white text-xs font-semibold rounded-xl transition-colors"
             >
               Go to Documents
             </a>
@@ -171,5 +239,9 @@ export const routes = [
         </AdminLayout>
       </AdminRoute>
     ),
+  },
+  {
+    path: '*',
+    element: <ErrorBoundaryPage />,
   },
 ];
